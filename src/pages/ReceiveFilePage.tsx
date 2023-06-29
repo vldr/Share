@@ -1,9 +1,9 @@
 import { Component } from "solid-js";
 
-const SendPage: Component = () => {
+const ReceiveFilePage: Component = () => {
   return (
     <div class="flex flex-col h-fit min-h-screen justify-center items-center p-5"></div>
   );
 };
 
-export default SendPage;
+export default ReceiveFilePage;
