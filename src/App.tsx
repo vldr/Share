@@ -2,10 +2,18 @@ import { Component, Switch, Match, createSignal } from "solid-js";
 import LoadingPage from "./pages/LoadingPage";
 import ErrorPage from "./pages/ErrorPage";
 import SelectFilePage from "./pages/SelectFilePage";
+import InvitePage from "./pages/InvitePage";
+
+type File = {
+  index: number;
+  name: string;
+  size: number;
+};
 
 export enum StateType {
   Loading,
   Error,
+  Invite,
   SelectFile,
   SendFile,
   ReceiveFile,
@@ -19,6 +27,11 @@ export interface LoadingState {
 export interface ErrorState {
   type: StateType.Error;
   message: string;
+}
+
+export interface InviteState {
+  type: StateType.Invite;
+  id: string;
 }
 
 export interface SelectFileState {
@@ -37,6 +50,7 @@ export interface ReceiveFileState {
 export type State =
   | LoadingState
   | ErrorState
+  | InviteState
   | SelectFileState
   | SendFileState
   | ReceiveFileState;
@@ -47,8 +61,9 @@ export const [state, setState] = createSignal<State>({
 });
 
 export const App: Component = () => {
-  const webSocket = new WebSocket("ws://192.168.0.15:58709");
+  let files: FileList;
 
+  const webSocket: WebSocket = new WebSocket("ws://192.168.0.15:58709");
   webSocket.onopen = () => {
     if (location.hash) {
       joinRoom();
@@ -80,8 +95,7 @@ export const App: Component = () => {
         case "create":
           return onCreateRoom(packet.id);
         case "join":
-          if (!packet.size) return onJoinRoom();
-          else break;
+          return onJoinRoom(packet?.size);
         case "leave":
           return onLeaveRoom();
         case "error":
@@ -90,8 +104,16 @@ export const App: Component = () => {
     }
   };
 
-  const onCreateRoom = (id: string) => {};
-  const onJoinRoom = () => {};
+  const onCreateRoom = (id: string) => {
+    location.hash = id;
+
+    setState({
+      type: StateType.Invite,
+      id,
+    });
+  };
+
+  const onJoinRoom = (size: number | undefined) => {};
   const onLeaveRoom = () => {};
 
   const onErrorRoom = (message: string) => {
@@ -112,7 +134,14 @@ export const App: Component = () => {
     webSocket.send(JSON.stringify(packet));
   };
 
-  const createRoom = (files: FileList) => {
+  const createRoom = (selectedFiles: FileList) => {
+    files = selectedFiles;
+
+    setState({
+      type: StateType.Loading,
+      message: "Attempting to create room...",
+    });
+
     const packet = {
       type: "create",
       size: 2,
@@ -123,14 +152,17 @@ export const App: Component = () => {
 
   return (
     <Switch>
+      <Match when={state().type === StateType.Invite}>
+        <InvitePage />
+      </Match>
       <Match when={state().type === StateType.SelectFile}>
-        <SelectFilePage state={state() as SelectFileState} />
+        <SelectFilePage />
       </Match>
       <Match when={state().type === StateType.Loading}>
-        <LoadingPage state={state() as LoadingState} />
+        <LoadingPage />
       </Match>
       <Match when={state().type === StateType.Error}>
-        <ErrorPage state={state() as ErrorState} />
+        <ErrorPage />
       </Match>
     </Switch>
   );

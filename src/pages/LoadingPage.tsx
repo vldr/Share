@@ -1,7 +1,7 @@
 import { Component } from "solid-js";
-import { LoadingState } from "../App";
+import { LoadingState, state } from "../App";
 
-const Loading: Component<{ state: LoadingState }> = (props) => {
+const Loading: Component = () => {
   return (
     <div class="flex flex-col h-fit min-h-screen justify-center items-center p-5">
       <svg
@@ -17,8 +17,9 @@ const Loading: Component<{ state: LoadingState }> = (props) => {
           fill="currentFill"
         />
       </svg>
+
       <div class="text-white text-xl max-w-lg select-none text-center">
-        {props.state.message}
+        {(state() as LoadingState).message}
       </div>
     </div>
   );

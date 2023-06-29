@@ -1,10 +1,21 @@
-import { Component, Match, Show, Switch, createSignal } from "solid-js";
-import { SelectFileState } from "../App";
-import DefaultProfilePicture from "../assets/profile_picture.svg";
+import { Component, JSX, Match, Show, Switch, createSignal } from "solid-js";
+import { SelectFileState, state } from "../App";
 import Logo from "../assets/logo.svg";
 
-const SelectFilePage: Component<{ state: SelectFileState }> = (props) => {
-  const [error, setError] = createSignal<string>();
+const SelectFilePage: Component = () => {
+  const onChange = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+
+    if (target.files) {
+      (state() as SelectFileState).submit(target.files);
+    }
+  };
+
+  const onClick = () => {
+    inputElement?.click();
+  };
+
+  let inputElement: HTMLInputElement | undefined;
 
   return (
     <div class="flex h-fit min-h-screen justify-center md:items-center items-start">
@@ -19,12 +30,23 @@ const SelectFilePage: Component<{ state: SelectFileState }> = (props) => {
             </svg>
             <div class="text-2xl w-max">Drag and drop files</div>
             <div class="text-l w-max mb-6">or click to select files</div>
-            <button class="transition w-fit font-bold bg-[#0060df] py-3 px-6 rounded hover:bg-[#2e75d1] mr-2">
+
+            <button
+              onClick={onClick}
+              class="transition w-fit font-bold bg-[#0060df] py-3 px-6 rounded hover:bg-[#2e75d1] mr-2">
               Select files to upload
             </button>
+
+            <input
+              style={{ display: "none" }}
+              ref={inputElement}
+              onChange={onChange}
+              multiple
+              type="file"
+            />
           </div>
         </div>
-        <div class="flex flex-col bg-[#101214] pb-7 w-full md:pb-0 md:w-[23rem]">
+        <div class="flex flex-col bg-[#101214] pb-7 w-full md:pb-0 md:w-[21rem]">
           <div class="flex flex-row m-7 mb-6 items-center">
             <div class="bg-[#0060df] h-14 w-14 p-1 rounded-lg mr-5">
               <img class="invert" src={Logo} />
