@@ -5,7 +5,10 @@ const Handshake = struct({
   signature: bytes(uint32),
 });
 
-const HandshakeResponse = Handshake;
+const HandshakeResponse = struct({
+  publicKey: bytes(uint32),
+  signature: bytes(uint32),
+});
 
 const Handshfgake = struct({
   x: bytes(uint32),

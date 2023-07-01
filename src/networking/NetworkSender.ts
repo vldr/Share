@@ -6,10 +6,10 @@ import {
   serializePacket,
 } from "./Packet";
 
-const ROOM_SIZE = 2;
-const IV_SIZE = 12;
-
 export class NetworkSender {
+  private readonly ROOM_SIZE = 2;
+  private readonly IV_SIZE = 12;
+
   private keyPair: CryptoKeyPair | undefined;
   private HMACKey: CryptoKey | undefined;
   private sharedKey: CryptoKey | undefined;
@@ -60,7 +60,7 @@ export class NetworkSender {
 
     this.sendJSON({
       type: "create",
-      size: ROOM_SIZE,
+      size: this.ROOM_SIZE,
     });
   }
 
@@ -82,17 +82,17 @@ export class NetworkSender {
       const data = new Uint8Array(arrayBuffer).slice(1);
 
       if (this.sharedKey) {
-        const iv = data.slice(0, IV_SIZE + 1);
-        const ciphertext = data.slice(IV_SIZE + 1);
+        const iv = data.slice(0, this.IV_SIZE + 1);
+        const ciphertext = data.slice(this.IV_SIZE + 1);
 
         try {
-          this.messageCallback(
-            await window.crypto.subtle.decrypt(
-              { name: "AES-GCM", iv },
-              this.sharedKey,
-              ciphertext
-            )
+          const plaintext = await window.crypto.subtle.decrypt(
+            { name: "AES-GCM", iv },
+            this.sharedKey,
+            ciphertext
           );
+
+          return this.messageCallback(plaintext);
         } catch (error) {
           return this.error("Failed to decrypt: " + error);
         }
@@ -212,7 +212,7 @@ export class NetworkSender {
         []
       );
     } catch (error) {
-      return this.error("Failed to export HMAC key: " + error);
+      return this.error("Failed to import public key: " + error);
     }
 
     try {
@@ -238,25 +238,35 @@ export class NetworkSender {
 
   private error(message: string) {
     if (this.webSocket.readyState === this.webSocket.OPEN) {
-      this.webSocket.send(JSON.stringify({ type: "leave" }));
+      this.sendJSON({ type: "leave" });
     }
 
     this.errorCallback(message);
   }
 
-  public async sendJSON(data: any) {
+  private async sendJSON(data: any) {
     this.webSocket.send(JSON.parse(data));
   }
 
   public async send(data: Uint8Array) {
     const index = new Uint8Array([255]);
-    const merged = new Uint8Array(index.length + data.length);
-    merged.set(index);
-    merged.set(data, index.length);
 
     if (this.sharedKey) {
+      const iv = window.crypto.getRandomValues(new Uint8Array(12));
+
+      try {
+        const ciphertext = await window.crypto.subtle.encrypt(
+          { name: "AES-GCM", iv },
+          this.sharedKey,
+          data
+        );
+
+        this.webSocket.send(new Blob([index, iv, ciphertext]));
+      } catch (error) {
+        return this.error("Failed to encrypt: " + error);
+      }
     } else {
-      this.webSocket.send(merged);
+      this.webSocket.send(new Blob([index, data]));
     }
   }
 }

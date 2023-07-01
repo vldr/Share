@@ -1,8 +1,15 @@
-import { Packet, deserializePacket } from "./Packet";
+import {
+  Packet,
+  createPacket,
+  deserializePacket,
+  serializePacket,
+} from "./Packet";
 
 export class NetworkReceiver {
+  IV_SIZE = 12;
+
   private keyPair: CryptoKeyPair | undefined;
-  private hmacKey: CryptoKey | undefined;
+  private HMACKey: CryptoKey | undefined;
   private sharedKey: CryptoKey | undefined;
 
   private readonly webSocket: WebSocket;
@@ -10,8 +17,7 @@ export class NetworkReceiver {
   constructor(
     URI: string,
     private readonly inviteCode: string | undefined,
-    private readonly messageCallback: (data: Uint8Array) => void,
-    private readonly readyCallback: (hash: string) => void,
+    private readonly messageCallback: (data: ArrayBuffer) => void,
     private readonly errorCallback: (message: string) => void
   ) {
     this.webSocket = new WebSocket(URI);
@@ -43,7 +49,7 @@ export class NetworkReceiver {
     );
 
     try {
-      this.hmacKey = await window.crypto.subtle.importKey(
+      this.HMACKey = await window.crypto.subtle.importKey(
         "raw",
         keyData,
         {
@@ -70,16 +76,22 @@ export class NetworkReceiver {
       return this.error("Failed to generate public-private key: " + error);
     }
 
-    this.webSocket.send(
-      JSON.stringify({
-        type: "join",
-        id,
-      })
-    );
+    this.sendJSON({
+      type: "join",
+      id,
+    });
   }
 
   private async onOpen() {
     await this.init();
+  }
+
+  private async onClose() {
+    return this.error("Network closed.");
+  }
+
+  private async onError() {
+    return this.error("Network error.");
   }
 
   private async onMessage(event: MessageEvent) {
@@ -87,60 +99,171 @@ export class NetworkReceiver {
       const arrayBuffer = await event.data.arrayBuffer();
       const data = new Uint8Array(arrayBuffer).slice(1);
 
-      const packet = deserializePacket(data);
+      if (this.sharedKey) {
+        const iv = data.slice(0, this.IV_SIZE + 1);
+        const ciphertext = data.slice(this.IV_SIZE + 1);
 
-      switch (packet.type) {
-        case "Handshake":
-          return this.onHandshake(packet.value);
+        try {
+          const plaintext = await window.crypto.subtle.decrypt(
+            { name: "AES-GCM", iv },
+            this.sharedKey,
+            ciphertext
+          );
+
+          return this.messageCallback(plaintext);
+        } catch (error) {
+          return this.error("Failed to decrypt: " + error);
+        }
+      } else {
+        const packet = deserializePacket(data);
+
+        switch (packet.type) {
+          case "Handshake":
+            return this.onHandshake(packet.value);
+        }
       }
     } else {
       const packet = JSON.parse(event.data as string);
 
       switch (packet.type) {
-        case "create":
-          return this.onCreateRoom(packet.id);
         case "leave":
-          return this.onLeaveRoom(packet.index);
+          return this.onLeaveRoom();
         case "error":
           return this.error(packet.message);
       }
     }
   }
 
-  private async onClose() {}
-  private async onError() {}
-
-  private async onCreateRoom(id: string) {
-    if (!this.hmacKey) {
-      return this.error("HMAC key is not valid.");
-    }
-
-    let key: ArrayBuffer;
-    try {
-      key = await window.crypto.subtle.exportKey("raw", this.hmacKey);
-    } catch (error) {
-      return this.error("Failed to export HMAC key: " + error);
-    }
-
-    this.readyCallback(
-      id + "-" + btoa(String.fromCharCode(...new Uint8Array(key)))
-    );
-  }
-
-  private async onLeaveRoom(index: number) {
+  private async onLeaveRoom() {
     return this.error("The sender has left the room.");
   }
 
-  private async onHandshake(packet: Packet<"Handshake">) {}
+  private async onHandshake(packet: Packet<"Handshake">) {
+    if (!this.HMACKey) {
+      return this.error("HMAC key is not valid.");
+    }
+
+    if (!this.keyPair) {
+      return this.error("Key pair is not valid.");
+    }
+
+    let verification;
+    try {
+      verification = await window.crypto.subtle.verify(
+        "HMAC",
+        this.HMACKey,
+        packet.signature,
+        packet.publicKey
+      );
+    } catch (error) {
+      return this.error("Failed to verify public key: " + error);
+    }
+
+    if (!verification) {
+      return this.error("The signature from the sender was invalid.");
+    }
+
+    let publicKey;
+    try {
+      publicKey = await window.crypto.subtle.importKey(
+        "raw",
+        packet.publicKey,
+        {
+          name: "ECDH",
+          namedCurve: "P-256",
+        },
+        false,
+        []
+      );
+    } catch (error) {
+      return this.error("Failed to import public key: " + error);
+    }
+
+    this.sendHandshakeResponse();
+
+    try {
+      this.sharedKey = await window.crypto.subtle.deriveKey(
+        {
+          name: "ECDH",
+          public: publicKey,
+        },
+        this.keyPair.privateKey,
+        {
+          name: "AES-GCM",
+          length: 256,
+        },
+        false,
+        ["encrypt", "decrypt"]
+      );
+    } catch (error) {
+      return this.error("Failed to derive key: " + error);
+    }
+  }
 
   private error(message: string) {
     if (this.webSocket.readyState === this.webSocket.OPEN) {
-      this.webSocket.send(JSON.stringify({ type: "leave" }));
+      this.sendJSON({ type: "leave" });
     }
 
     this.errorCallback(message);
   }
 
-  public send(data: Uint8Array) {}
-  public sendUnecrypted(data: Uint8Array) {}
+  private async sendHandshakeResponse() {
+    if (!this.HMACKey) {
+      return this.error("HMAC key is not valid.");
+    }
+
+    if (!this.keyPair) {
+      return this.error("Key pair is not valid.");
+    }
+
+    let publicKey: Uint8Array;
+    try {
+      publicKey = new Uint8Array(
+        await window.crypto.subtle.exportKey("raw", this.keyPair.publicKey)
+      );
+    } catch (error) {
+      return this.error("Failed to export public key: " + error);
+    }
+
+    let signature: Uint8Array;
+    try {
+      signature = new Uint8Array(
+        await window.crypto.subtle.sign("HMAC", this.HMACKey, publicKey)
+      );
+    } catch (error) {
+      return this.error("Failed to export HMAC key: " + error);
+    }
+
+    const packet = createPacket("HandshakeResponse", { publicKey, signature });
+    const data = serializePacket(packet);
+
+    this.send(data);
+  }
+
+  private async sendJSON(data: any) {
+    this.webSocket.send(JSON.parse(data));
+  }
+
+  public async send(data: Uint8Array) {
+    const index = new Uint8Array([255]);
+
+    if (this.sharedKey) {
+      const iv = window.crypto.getRandomValues(new Uint8Array(12));
+
+      try {
+        const ciphertext = await window.crypto.subtle.encrypt(
+          { name: "AES-GCM", iv },
+          this.sharedKey,
+          data
+        );
+
+        this.webSocket.send(new Blob([index, iv, ciphertext]));
+      } catch (error) {
+        return this.error("Failed to encrypt: " + error);
+      }
+    } else {
+      this.webSocket.send(new Blob([index, data]));
+    }
+  }
 }
