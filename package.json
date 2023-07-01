@@ -10,7 +10,6 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@types/simple-peer": "^9.11.5",
     "autoprefixer": "^10.4.14",
     "postcss": "^8.4.24",
     "solid-devtools": "^0.27.3",
@@ -20,6 +19,7 @@
     "vite-plugin-solid": "^2.7.0"
   },
   "dependencies": {
+    "sirdez": "^0.1.0",
     "solid-js": "^1.7.6"
   }
 }

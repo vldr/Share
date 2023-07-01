@@ -1,17 +1,22 @@
 import { Component, Switch, Match, createSignal } from "solid-js";
-import LoadingPage from "./pages/LoadingPage";
-import ErrorPage from "./pages/ErrorPage";
-import SelectFilePage from "./pages/SelectFilePage";
-import InvitePage from "./pages/InvitePage";
+// import LoadingPage from "./pages/LoadingPage";
+// import ErrorPage from "./pages/ErrorPage";
+// import SelectFilePage from "./pages/SelectFilePage";
+// import InvitePage from "./pages/InvitePage";
 
 enum Packet {
-  FileList,
+  FileArray,
   FileProgress,
   FileChunk,
 }
 
-type FileListPacket = { index: number; name: string; size: number }[];
-type FileProgressPacket = {
+type FileArray = {
+  index: number;
+  name: string;
+  progress: number;
+  size: number;
+}[];
+type FileProgress = {
   index: number;
   percentage: number;
 };
@@ -60,177 +65,257 @@ export type State =
   | SendFileState
   | ReceiveFileState;
 
-export const [fileList, setFileList] = createSignal<FileListPacket>([]);
+export const [fileArray, setFileArray] = createSignal<FileArray>([]);
 export const [state, setState] = createSignal<State>({
   type: StateType.Loading,
   message: "Attempting to connect...",
 });
 
 export const App: Component = () => {
-  let files: FileList;
-  let id: string;
+  // let files: FileList;
+  // let id: string;
+  // let buffer: Uint8Array[];
 
-  const webSocket: WebSocket = new WebSocket("ws://192.168.0.15:58709");
-  webSocket.onopen = () => {
-    if (location.hash) {
-      joinRoom();
-    } else {
-      setState({ type: StateType.SelectFile, submit: createRoom });
-    }
-  };
+  // const BLOCK_SIZE = 65536;
+  // const URI = "ws://127.0.0.1:53810";
 
-  webSocket.onclose = () => {
-    setState({
-      type: StateType.Error,
-      message: "Disconnected from the server.",
-    });
-  };
+  // const webSocket: WebSocket = new WebSocket(URI);
+  // webSocket.onopen = () => {
+  //   if (location.hash) {
+  //     joinRoom();
+  //   } else {
+  //     setState({ type: StateType.SelectFile, submit: createRoom });
+  //   }
+  // };
 
-  webSocket.onerror = (event) => {
-    setState({
-      type: StateType.Error,
-      message: "Disconnected from the server: " + event,
-    });
-  };
+  // webSocket.onclose = () => {
+  //   setState({
+  //     type: StateType.Error,
+  //     message: "Disconnected from the server.",
+  //   });
+  // };
 
-  webSocket.onmessage = async (event) => {
-    if (event.data instanceof Blob) {
-      const arrayBuffer = await event.data.arrayBuffer();
-      const data = new Uint8Array(arrayBuffer).slice(1);
+  // webSocket.onerror = (event) => {
+  //   setState({
+  //     type: StateType.Error,
+  //     message: "Disconnected from the server: " + event,
+  //   });
+  // };
 
-      const type = data[0] as Packet;
+  // webSocket.onmessage = async (event) => {
+  //   if (event.data instanceof Blob) {
+  //     const arrayBuffer = await event.data.arrayBuffer();
+  //     const data = new Uint8Array(arrayBuffer).slice(1);
 
-      switch (type) {
-        case Packet.FileList:
-          return onFileList(data.slice(1));
-      }
-    } else {
-      const packet = JSON.parse(event.data as string);
+  //     const type = data[0] as Packet;
 
-      switch (packet.type) {
-        case "create":
-          return onCreateRoom(packet.id);
-        case "join":
-          return onJoinRoom(packet?.size);
-        case "leave":
-          return onLeaveRoom(packet.index);
-        case "error":
-          return onErrorRoom(packet.message);
-      }
-    }
-  };
+  //     switch (type) {
+  //       case Packet.FileArray:
+  //         return onFileArray(data.slice(1));
+  //       case Packet.FileChunk:
+  //         return onFileChunk(data.slice(1));
+  //     }
+  //   } else {
+  //     const packet = JSON.parse(event.data as string);
 
-  const onCreateRoom = (identifier: string) => {
-    id = identifier;
-    location.hash = id;
+  //     switch (packet.type) {
+  //       case "create":
+  //         return onCreateRoom(packet.id);
+  //       case "join":
+  //         return onJoinRoom(packet?.size);
+  //       case "leave":
+  //         return onLeaveRoom(packet.index);
+  //       case "error":
+  //         return onErrorRoom(packet.message);
+  //     }
+  //   }
+  // };
 
-    setState({
-      type: StateType.Invite,
-    });
-  };
+  // const onCreateRoom = (identifier: string) => {
+  //   id = identifier;
+  //   location.hash = id;
 
-  const onJoinRoom = (size: number | undefined) => {
-    if (!size) {
-      sendFileList();
+  //   setState({
+  //     type: StateType.Invite,
+  //   });
+  // };
 
-      setState({
-        type: StateType.SendFile,
-      });
-    } else {
-      setState({
-        type: StateType.Loading,
-        message: "Waiting for files...",
-      });
-    }
-  };
+  // const onJoinRoom = (size: number | undefined) => {
+  //   if (!size) {
+  //     sendFiles();
+  //     setState({
+  //       type: StateType.SendFile,
+  //     });
+  //   } else {
+  //     setState({
+  //       type: StateType.Loading,
+  //       message: "Waiting for files...",
+  //     });
+  //   }
+  // };
 
-  const onLeaveRoom = (index: number) => {
-    if (index) {
-      setState({
-        type: StateType.Invite,
-      });
-    } else {
-      webSocket.close();
-    }
-  };
+  // const onLeaveRoom = (index: number) => {
+  //   if (index) {
+  //     setState({
+  //       type: StateType.Invite,
+  //     });
+  //   } else {
+  //     webSocket.close();
+  //   }
+  // };
 
-  const onErrorRoom = (message: string) => {
-    setState({
-      type: StateType.Error,
-      message,
-    });
-  };
+  // const onErrorRoom = (message: string) => {
+  //   setState({
+  //     type: StateType.Error,
+  //     message,
+  //   });
+  // };
 
-  const onFileList = (data: Uint8Array) => {
-    const json = new TextDecoder().decode(data);
-    const packet = JSON.parse(json) as FileListPacket;
+  // const onFileChunk = (data: Uint8Array) => {
+  //   if (fileArray().length === 0) {
+  //     setState({
+  //       type: StateType.Error,
+  //       message: "Unexpected file chunk while no files exist.",
+  //     });
+  //     return;
+  //   }
 
-    console.log(packet);
-  };
+  //   buffer.push(data);
 
-  const joinRoom = () => {
-    id = location.hash.replace("#", "");
+  //   setFileArray((previousFileArray) => {
+  //     const filesArray = [...previousFileArray];
 
-    const packet = {
-      type: "join",
-      id,
-    };
+  //     filesArray[0].progress += data.byteLength;
 
-    webSocket.send(JSON.stringify(packet));
-  };
+  //     console.log(filesArray[0].index, data.byteLength, filesArray[0].size);
 
-  const createRoom = (selectedFiles: FileList) => {
-    files = selectedFiles;
+  //     if (filesArray[0].size == filesArray[0].progress) {
+  //       console.log("file done ", filesArray[0]);
+  //       filesArray.shift();
+  //       buffer = [];
+  //     }
 
-    setState({
-      type: StateType.Loading,
-      message: "Attempting to create room...",
-    });
+  //     return filesArray;
+  //   });
+  // };
 
-    const packet = {
-      type: "create",
-      size: 2,
-    };
+  // const onFileArray = (data: Uint8Array) => {
+  //   buffer = [];
 
-    webSocket.send(JSON.stringify(packet));
-  };
+  //   const json = new TextDecoder().decode(data);
+  //   const fileArray = JSON.parse(json) as FileArray;
 
-  const send = (type: Packet, data: Uint8Array) => {
-    const index = new Uint8Array([255, type]);
+  //   setFileArray(fileArray);
+  //   setState({ type: StateType.ReceiveFile });
+  // };
 
-    const mergedData = new Uint8Array(index.length + data.length);
-    mergedData.set(index);
-    mergedData.set(data, index.length);
+  // const joinRoom = () => {
+  //   id = location.hash.replace("#", "");
 
-    webSocket.send(mergedData);
-  };
+  //   const packet = {
+  //     type: "join",
+  //     id,
+  //   };
 
-  const sendFileList = () => {
-    const packet: FileListPacket = [];
-    for (let index = 0; index < files.length; index++) {
-      packet.push({ index, name: files[index].name, size: files[index].size });
-    }
+  //   webSocket.send(JSON.stringify(packet));
+  // };
 
-    const json = JSON.stringify(packet);
-    const data = new TextEncoder().encode(json);
+  // const createRoom = (selectedFiles: FileList) => {
+  //   files = selectedFiles;
 
-    send(Packet.FileList, data);
-  };
+  //   setState({
+  //     type: StateType.Loading,
+  //     message: "Attempting to create room...",
+  //   });
 
-  return (
-    <Switch>
-      <Match when={state().type === StateType.Invite}>
-        <InvitePage />
-      </Match>
-      <Match when={state().type === StateType.SelectFile}>
-        <SelectFilePage />
-      </Match>
-      <Match when={state().type === StateType.Loading}>
-        <LoadingPage />
-      </Match>
-      <Match when={state().type === StateType.Error}>
-        <ErrorPage />
-      </Match>
-    </Switch>
-  );
+  //   const packet = {
+  //     type: "create",
+  //     size: 2,
+  //   };
+
+  //   webSocket.send(JSON.stringify(packet));
+  // };
+
+  // const send = (type: Packet, data: Uint8Array) => {
+  //   const index = new Uint8Array([255, type]);
+
+  //   const mergedData = new Uint8Array(index.length + data.length);
+  //   mergedData.set(index);
+  //   mergedData.set(data, index.length);
+
+  //   webSocket.send(mergedData);
+  // };
+
+  // const sendFiles = () => {
+  //   const fileArray: FileArray = [];
+  //   for (let index = 0; index < files.length; index++) {
+  //     fileArray.push({
+  //       index,
+  //       progress: 0,
+  //       name: files[index].name,
+  //       size: files[index].size,
+  //     });
+  //   }
+
+  //   const json = JSON.stringify(fileArray);
+  //   const data = new TextEncoder().encode(json);
+
+  //   setFileArray(fileArray);
+  //   send(Packet.FileArray, data);
+
+  //   for (const file of files) {
+  //     const fileReader = new FileReader();
+
+  //     let blockSize = BLOCK_SIZE;
+  //     let offset = 0;
+  //     let size = file.size;
+
+  //     const seek = () => {
+  //       if (size) {
+  //         if (size < blockSize) {
+  //           blockSize = size;
+  //         }
+
+  //         const slice = file.slice(offset, offset + blockSize);
+
+  //         size -= blockSize;
+  //         offset += blockSize;
+
+  //         console.log(blockSize);
+
+  //         fileReader.readAsArrayBuffer(slice);
+  //       }
+  //     };
+
+  //     fileReader.onload = () => {
+  //       send(
+  //         Packet.FileChunk,
+  //         new Uint8Array(fileReader.result as ArrayBuffer)
+  //       );
+
+  //       seek();
+  //     };
+
+  //     seek();
+  //   }
+  // };
+
+  // return (
+  //   <Switch>
+  //     <Match when={state().type === StateType.Invite}>
+  //       <InvitePage />
+  //     </Match>
+  //     <Match when={state().type === StateType.SelectFile}>
+  //       <SelectFilePage />
+  //     </Match>
+  //     <Match when={state().type === StateType.Loading}>
+  //       <LoadingPage />
+  //     </Match>
+  //     <Match when={state().type === StateType.Error}>
+  //       <ErrorPage />
+  //     </Match>
+  //   </Switch>
+  // );
+
+  return <></>;
 };
