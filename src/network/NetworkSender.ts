@@ -19,6 +19,7 @@ export class NetworkSender {
   constructor(
     URI: string,
     private readonly messageCallback: (data: Uint8Array) => void,
+    private readonly openCallback: () => void,
     private readonly createRoomCallback: (inviteCode: string) => void,
     private readonly leaveRoomCallback: () => void,
     private readonly joinRoomCallback: () => void,
@@ -31,7 +32,7 @@ export class NetworkSender {
     this.webSocket.onmessage = this.onMessage.bind(this);
   }
 
-  private async init() {
+  public async init() {
     try {
       this.keyPair = await window.crypto.subtle.generateKey(
         {
@@ -65,7 +66,7 @@ export class NetworkSender {
   }
 
   private async onOpen() {
-    await this.init();
+    this.openCallback();
   }
 
   private async onClose() {
@@ -139,9 +140,10 @@ export class NetworkSender {
       return this.error("Failed to export HMAC key: " + error);
     }
 
-    this.createRoomCallback(
-      id + "-" + btoa(String.fromCharCode(...new Uint8Array(key)))
-    );
+    const inviteCode =
+      id + "-" + btoa(String.fromCharCode(...new Uint8Array(key)));
+
+    this.createRoomCallback(inviteCode);
   }
 
   private async onJoinRoom() {

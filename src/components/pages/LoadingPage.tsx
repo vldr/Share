@@ -1,5 +1,5 @@
 import { Component } from "solid-js";
-import { LoadingState, state } from "../App";
+import { LoadingState, state } from "../../App";
 
 const Loading: Component = () => {
   return (

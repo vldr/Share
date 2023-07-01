@@ -1,5 +1,5 @@
 /* @refresh reload */
-import { App } from "./components/App";
+import { App } from "./App";
 import { render } from "solid-js/web";
 
 import "./index.css";

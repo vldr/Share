@@ -1,5 +1,5 @@
 import { Component, Show } from "solid-js";
-import { ErrorState, state } from "../App";
+import { ErrorState, state } from "../../App";
 import Error from "../assets/error.svg";
 
 const ErrorPage: Component = () => {

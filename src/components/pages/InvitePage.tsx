@@ -1,5 +1,5 @@
 import { Component, Show, createSignal } from "solid-js";
-import { InviteState, state } from "../App";
+import { InviteState, state } from "../../App";
 
 const InvitePage: Component = () => {
   const [copied, setCopied] = createSignal<boolean>(false);

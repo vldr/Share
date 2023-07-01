@@ -1,5 +1,5 @@
 import { Component, JSX, Match, Show, Switch, createSignal } from "solid-js";
-import { SelectFileState, state } from "../App";
+import { SelectFileState, state } from "../../App";
 import Logo from "../assets/logo.svg";
 
 const SelectFilePage: Component = () => {
