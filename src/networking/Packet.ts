@@ -1,6 +1,15 @@
-import { oneOf, use, uint8, GetType } from "sirdez";
-import { Handshake } from "./HandshakePacket";
-import { HandshakeResponse } from "./HandshakeResponsePacket";
+import { oneOf, use, uint8, GetType, bytes, uint32, struct } from "sirdez";
+
+const Handshake = struct({
+  publicKey: bytes(uint32),
+  signature: bytes(uint32),
+});
+
+const HandshakeResponse = Handshake;
+
+const Handshfgake = struct({
+  x: bytes(uint32),
+});
 
 const Packet = oneOf(uint8, {
   Handshake,
@@ -14,6 +23,7 @@ type PacketInner<T extends string> = Extract<
   { type: T }
 >;
 
+export type PacketUnion = GetType<typeof Packet>;
 export type Packet<T extends string> = PacketInner<T>["value"];
 
 export function createPacket<T extends string>(

@@ -1,6 +1,6 @@
 import { Packet, deserializePacket } from "./Packet";
 
-export class Network {
+export class NetworkReceiver {
   private keyPair: CryptoKeyPair | undefined;
   private hmacKey: CryptoKey | undefined;
   private sharedKey: CryptoKey | undefined;
@@ -12,7 +12,7 @@ export class Network {
     private readonly inviteCode: string | undefined,
     private readonly messageCallback: (data: Uint8Array) => void,
     private readonly readyCallback: (hash: string) => void,
-    private readonly closeCallback: () => void
+    private readonly errorCallback: (message: string) => void
   ) {
     this.webSocket = new WebSocket(URI);
     this.webSocket.onopen = this.onOpen.bind(this);
@@ -22,56 +22,17 @@ export class Network {
   }
 
   private async init() {
-    try {
-      this.keyPair = await window.crypto.subtle.generateKey(
-        {
-          name: "ECDH",
-          namedCurve: "P-256",
-        },
-        false,
-        ["deriveKey"]
-      );
-    } catch (error) {
-      return this.error("Failed to generate public-private key: " + error);
+    if (!this.inviteCode) {
+      return this.error("Invite code is invalid.");
     }
 
-    if (this.inviteCode) {
-      this.initReceiver(this.inviteCode);
-    } else {
-      this.initSender();
-    }
-  }
-
-  private async initSender() {
-    try {
-      this.hmacKey = await window.crypto.subtle.generateKey(
-        {
-          name: "HMAC",
-          hash: { name: "SHA-256" },
-        },
-        true,
-        ["sign", "verify"]
-      );
-    } catch (error) {
-      return this.error("Failed to generate HMAC key: " + error);
-    }
-
-    this.webSocket.send(
-      JSON.stringify({
-        type: "create",
-        size: 2,
-      })
-    );
-  }
-
-  private async initReceiver(inviteCode: string) {
-    const index = inviteCode.lastIndexOf("-");
+    const index = this.inviteCode.lastIndexOf("-");
     if (index === -1) {
       return this.error("Invalid URL structure.");
     }
 
-    const id = inviteCode.slice(0, index);
-    const key = inviteCode.slice(index + 1);
+    const id = this.inviteCode.slice(0, index);
+    const key = this.inviteCode.slice(index + 1);
 
     if (!key || id) {
       return this.error("Invalid URL components.");
@@ -96,6 +57,19 @@ export class Network {
       return this.error("Failed to import HMAC key: " + error);
     }
 
+    try {
+      this.keyPair = await window.crypto.subtle.generateKey(
+        {
+          name: "ECDH",
+          namedCurve: "P-256",
+        },
+        false,
+        ["deriveKey"]
+      );
+    } catch (error) {
+      return this.error("Failed to generate public-private key: " + error);
+    }
+
     this.webSocket.send(
       JSON.stringify({
         type: "join",
@@ -118,8 +92,6 @@ export class Network {
       switch (packet.type) {
         case "Handshake":
           return this.onHandshake(packet.value);
-        case "HandshakeResponse":
-          return this.onHandshakeResponse(packet.value);
       }
     } else {
       const packet = JSON.parse(event.data as string);
@@ -127,8 +99,6 @@ export class Network {
       switch (packet.type) {
         case "create":
           return this.onCreateRoom(packet.id);
-        case "join":
-          return this.onJoinRoom(packet?.size);
         case "leave":
           return this.onLeaveRoom(packet.index);
         case "error":
@@ -157,23 +127,19 @@ export class Network {
     );
   }
 
-  private async onJoinRoom(size: number | undefined) {
-    if (!size) {
-    }
-  }
-
   private async onLeaveRoom(index: number) {
-    if (index) {
-      return this.error("The receiver has left the room.");
-    } else {
-      return this.error("The sender has left the room.");
-    }
+    return this.error("The sender has left the room.");
   }
 
   private async onHandshake(packet: Packet<"Handshake">) {}
-  private async onHandshakeResponse(packet: Packet<"HandshakeResponse">) {}
 
-  private error(message: string) {}
+  private error(message: string) {
+    if (this.webSocket.readyState === this.webSocket.OPEN) {
+      this.webSocket.send(JSON.stringify({ type: "leave" }));
+    }
+
+    this.errorCallback(message);
+  }
 
   public send(data: Uint8Array) {}
   public sendUnecrypted(data: Uint8Array) {}
