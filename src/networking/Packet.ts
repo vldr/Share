@@ -1,20 +1,6 @@
-import {
-  struct,
-  oneOf,
-  use,
-  float64,
-  uint32,
-  uint8,
-  GetType,
-  bytes,
-} from "sirdez";
-
-const Handshake = struct({
-  publicKey: bytes(uint32),
-  signature: bytes(uint32),
-});
-
-const HandshakeResponse = Handshake;
+import { oneOf, use, uint8, GetType } from "sirdez";
+import { Handshake } from "./HandshakePacket";
+import { HandshakeResponse } from "./HandshakeResponsePacket";
 
 const Packet = oneOf(uint8, {
   Handshake,

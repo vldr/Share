@@ -1,16 +1,5 @@
 import { Packet, deserializePacket } from "./Packet";
 
-export type NetworkSenderState = {
-  type: "sender";
-};
-
-export type NetworkReceiverState = {
-  type: "receiver";
-  hash: string;
-};
-
-export type NetworkState = NetworkSenderState | NetworkReceiverState;
-
 export class Network {
   private keyPair: CryptoKeyPair | undefined;
   private hmacKey: CryptoKey | undefined;
@@ -20,7 +9,7 @@ export class Network {
 
   constructor(
     URI: string,
-    private readonly state: NetworkState,
+    private readonly inviteCode: string | undefined,
     private readonly messageCallback: (data: Uint8Array) => void,
     private readonly readyCallback: (hash: string) => void,
     private readonly closeCallback: () => void
@@ -46,10 +35,10 @@ export class Network {
       return this.error("Failed to generate public-private key: " + error);
     }
 
-    if (this.state.type === "sender") {
+    if (this.inviteCode) {
+      this.initReceiver(this.inviteCode);
+    } else {
       this.initSender();
-    } else if (this.state.type === "receiver") {
-      this.initReceiver(this.state);
     }
   }
 
@@ -75,14 +64,14 @@ export class Network {
     );
   }
 
-  private async initReceiver(state: NetworkReceiverState) {
-    const index = state.hash.lastIndexOf("-");
+  private async initReceiver(inviteCode: string) {
+    const index = inviteCode.lastIndexOf("-");
     if (index === -1) {
       return this.error("Invalid URL structure.");
     }
 
-    const id = state.hash.slice(0, index);
-    const key = state.hash.slice(index + 1);
+    const id = inviteCode.slice(0, index);
+    const key = inviteCode.slice(index + 1);
 
     if (!key || id) {
       return this.error("Invalid URL components.");
