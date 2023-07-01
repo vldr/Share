@@ -121,6 +121,7 @@ export class NetworkSender {
   }
 
   private async onLeaveRoom() {
+    this.sharedKey = undefined;
     this.leaveRoomCallback();
   }
 
@@ -245,7 +246,7 @@ export class NetworkSender {
   }
 
   private async sendJSON(data: any) {
-    this.webSocket.send(JSON.parse(data));
+    this.webSocket.send(JSON.stringify(data));
   }
 
   public async send(data: Uint8Array) {

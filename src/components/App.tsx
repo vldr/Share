@@ -1,4 +1,6 @@
 import { Component, Switch, Match, createSignal } from "solid-js";
+import { NetworkSender } from "../networking/NetworkSender";
+import { NetworkReceiver } from "../networking/NetworkReceiver";
 // import LoadingPage from "./pages/LoadingPage";
 // import ErrorPage from "./pages/ErrorPage";
 // import SelectFilePage from "./pages/SelectFilePage";
@@ -72,6 +74,32 @@ export const [state, setState] = createSignal<State>({
 });
 
 export const App: Component = () => {
+  if (location.hash) {
+    const network = new NetworkReceiver(
+      "ws://127.0.0.1:60458",
+      location.hash.replace("#", ""),
+      () => {},
+      (error) => {
+        console.log("error", error);
+      }
+    );
+  } else {
+    const network = new NetworkSender(
+      "ws://127.0.0.1:60458",
+      () => {},
+      (id) => {
+        console.log("room created", id);
+        location.hash = id;
+      },
+      () => {},
+      () => {
+        console.log("ready to go!!!");
+      },
+      () => {}
+    );
+  }
+
+  return <></>;
   // let files: FileList;
   // let id: string;
   // let buffer: Uint8Array[];
@@ -316,6 +344,4 @@ export const App: Component = () => {
   //     </Match>
   //   </Switch>
   // );
-
-  return <></>;
 };

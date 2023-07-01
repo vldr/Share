@@ -40,7 +40,7 @@ export class NetworkReceiver {
     const id = this.inviteCode.slice(0, index);
     const key = this.inviteCode.slice(index + 1);
 
-    if (!key || id) {
+    if (!key || !id) {
       return this.error("Invalid URL components.");
     }
 
@@ -179,7 +179,7 @@ export class NetworkReceiver {
       return this.error("Failed to import public key: " + error);
     }
 
-    this.sendHandshakeResponse();
+    await this.sendHandshakeResponse();
 
     try {
       this.sharedKey = await window.crypto.subtle.deriveKey(
@@ -242,7 +242,7 @@ export class NetworkReceiver {
   }
 
   private async sendJSON(data: any) {
-    this.webSocket.send(JSON.parse(data));
+    this.webSocket.send(JSON.stringify(data));
   }
 
   public async send(data: Uint8Array) {
