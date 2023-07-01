@@ -18,7 +18,7 @@ export class NetworkSender {
 
   constructor(
     URI: string,
-    private readonly messageCallback: (data: ArrayBuffer) => void,
+    private readonly messageCallback: (data: Uint8Array) => void,
     private readonly createRoomCallback: (inviteCode: string) => void,
     private readonly leaveRoomCallback: () => void,
     private readonly joinRoomCallback: () => void,
@@ -82,14 +82,16 @@ export class NetworkSender {
       const data = new Uint8Array(arrayBuffer).slice(1);
 
       if (this.sharedKey) {
-        const iv = data.slice(0, this.IV_SIZE + 1);
-        const ciphertext = data.slice(this.IV_SIZE + 1);
+        const iv = data.slice(0, this.IV_SIZE);
+        const ciphertext = data.slice(this.IV_SIZE);
 
         try {
-          const plaintext = await window.crypto.subtle.decrypt(
-            { name: "AES-GCM", iv },
-            this.sharedKey,
-            ciphertext
+          const plaintext = new Uint8Array(
+            await window.crypto.subtle.decrypt(
+              { name: "AES-GCM", iv },
+              this.sharedKey,
+              ciphertext
+            )
           );
 
           return this.messageCallback(plaintext);

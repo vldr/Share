@@ -10,13 +10,14 @@ const HandshakeResponse = struct({
   signature: bytes(uint32),
 });
 
-const Handshfgake = struct({
-  x: bytes(uint32),
+const Test = struct({
+  cool: uint32,
 });
 
 const Packet = oneOf(uint8, {
   Handshake,
   HandshakeResponse,
+  Test,
 });
 
 const { fromBytes, toUnsafeBytes } = use(Packet);

@@ -1,6 +1,11 @@
 import { Component, Switch, Match, createSignal } from "solid-js";
 import { NetworkSender } from "../networking/NetworkSender";
 import { NetworkReceiver } from "../networking/NetworkReceiver";
+import {
+  createPacket,
+  deserializePacket,
+  serializePacket,
+} from "../networking/Packet";
 // import LoadingPage from "./pages/LoadingPage";
 // import ErrorPage from "./pages/ErrorPage";
 // import SelectFilePage from "./pages/SelectFilePage";
@@ -78,7 +83,18 @@ export const App: Component = () => {
     const network = new NetworkReceiver(
       "ws://127.0.0.1:60458",
       location.hash.replace("#", ""),
-      () => {},
+      (data) => {
+        const packet = deserializePacket(data);
+
+        if (packet.type === "Test") {
+          console.log(packet.value);
+
+          const responsePacket = createPacket("Test", { cool: 42 });
+          const data = serializePacket(responsePacket);
+
+          network.send(data);
+        }
+      },
       (error) => {
         console.log("error", error);
       }
@@ -86,7 +102,13 @@ export const App: Component = () => {
   } else {
     const network = new NetworkSender(
       "ws://127.0.0.1:60458",
-      () => {},
+      (data) => {
+        const packet = deserializePacket(data);
+
+        if (packet.type === "Test") {
+          console.log(packet.value);
+        }
+      },
       (id) => {
         console.log("room created", id);
         location.hash = id;
@@ -94,6 +116,11 @@ export const App: Component = () => {
       () => {},
       () => {
         console.log("ready to go!!!");
+
+        const packet = createPacket("Test", { cool: 42 });
+        const data = serializePacket(packet);
+
+        network.send(data);
       },
       () => {}
     );
