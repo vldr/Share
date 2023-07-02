@@ -14,25 +14,26 @@ export class NetworkSender {
   private HMACKey: CryptoKey | undefined;
   private sharedKey: CryptoKey | undefined;
 
-  private readonly webSocket: WebSocket;
+  private webSocket: WebSocket | undefined;
 
   constructor(
-    URI: string,
+    private readonly URI: string,
     private readonly messageCallback: (data: Uint8Array) => void,
-    private readonly openCallback: () => void,
     private readonly createRoomCallback: (inviteCode: string) => void,
     private readonly leaveRoomCallback: () => void,
     private readonly joinRoomCallback: () => void,
     private readonly errorCallback: (message: string) => void
-  ) {
-    this.webSocket = new WebSocket(URI);
+  ) {}
+
+  public async init() {
+    this.webSocket = new WebSocket(this.URI);
     this.webSocket.onopen = this.onOpen.bind(this);
     this.webSocket.onclose = this.onClose.bind(this);
     this.webSocket.onerror = this.onError.bind(this);
     this.webSocket.onmessage = this.onMessage.bind(this);
   }
 
-  public async init() {
+  private async onOpen() {
     try {
       this.keyPair = await window.crypto.subtle.generateKey(
         {
@@ -63,10 +64,6 @@ export class NetworkSender {
       type: "create",
       size: this.ROOM_SIZE,
     });
-  }
-
-  private async onOpen() {
-    this.openCallback();
   }
 
   private async onClose() {
@@ -244,7 +241,7 @@ export class NetworkSender {
   }
 
   private close() {
-    if (this.webSocket.readyState === this.webSocket.OPEN) {
+    if (this.webSocket && this.webSocket.readyState === this.webSocket.OPEN) {
       this.sendJSON({ type: "leave" });
     }
   }
@@ -255,7 +252,7 @@ export class NetworkSender {
   }
 
   private async sendJSON(data: any) {
-    this.webSocket.send(JSON.stringify(data));
+    this.webSocket?.send(JSON.stringify(data));
   }
 
   public async send(data: Uint8Array) {
@@ -271,12 +268,12 @@ export class NetworkSender {
           data
         );
 
-        this.webSocket.send(new Blob([index, iv, ciphertext]));
+        this.webSocket?.send(new Blob([index, iv, ciphertext]));
       } catch (error) {
         return this.error("Failed to encrypt: " + error);
       }
     } else {
-      this.webSocket.send(new Blob([index, data]));
+      this.webSocket?.send(new Blob([index, data]));
     }
   }
 }

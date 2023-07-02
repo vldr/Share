@@ -29,8 +29,7 @@ const Sender: Component = () => {
 
   const [files, setFiles] = createSignal<FileType[]>([]);
   const [page, setPage] = createSignal<PageType>({
-    type: "loading",
-    message: "Attempting to connect...",
+    type: "selectFile",
   });
 
   const onMessage = (data: Uint8Array) => {
@@ -40,10 +39,6 @@ const Sender: Component = () => {
       case "Progress":
         return onProgress(packet.value);
     }
-  };
-
-  const onOpen = () => {
-    setPage({ type: "selectFile" });
   };
 
   const onCreateRoom = (inviteCode: string) => {
@@ -191,7 +186,6 @@ const Sender: Component = () => {
   const network = new NetworkSender(
     import.meta.env.VITE_URI || String(),
     onMessage,
-    onOpen,
     onCreateRoom,
     onLeaveRoom,
     onJoinRoom,
