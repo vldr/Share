@@ -1,13 +1,13 @@
-import { Component, JSX, Match, Show, Switch, createSignal } from "solid-js";
-import { SelectFileState, state } from "../../App";
+import { Component } from "solid-js";
+import { NetworkSender } from "../../network/NetworkSender";
 import Logo from "../assets/logo.svg";
 
-const SelectFilePage: Component = () => {
+const SelectFilePage: Component<{ network: NetworkSender }> = (props) => {
   const onChange = (event: Event) => {
     const target = event.target as HTMLInputElement;
 
     if (target.files) {
-      (state() as SelectFileState).submit(target.files);
+      props.network.init();
     }
   };
 

@@ -1,8 +1,7 @@
 import { Component, Show } from "solid-js";
-import { ErrorState, state } from "../../App";
-import Error from "../assets/error.svg";
+import Error from "../../assets/error.svg";
 
-const ErrorPage: Component = () => {
+const ErrorPage: Component<{ message: string }> = (props) => {
   const onRetryClick = () => {
     location.reload();
   };
@@ -22,7 +21,7 @@ const ErrorPage: Component = () => {
       <img class="w-32 h-32 mb-[-20px]" src={Error} />
       <div class="text-4xl text-white">Error</div>
       <div class="text-xl text-white max-w-lg mt-3 mb-5 text-center">
-        {(state() as ErrorState).message}
+        {props.message}
       </div>
       <div class="flex flex-row">
         <Show
