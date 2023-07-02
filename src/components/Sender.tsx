@@ -17,6 +17,7 @@ import InvitePage from "./pages/InvitePage";
 import LoadingPage from "./pages/LoadingPage";
 import SelectFilePage from "./pages/SelectFilePage";
 import TransferFilePage from "./pages/TransferFilePage";
+import TransferFileCompletedPage from "./pages/TransferFileCompletedPage";
 
 const Sender: Component = () => {
   const CHUNK_SIZE = 65535;
@@ -211,7 +212,7 @@ const Sender: Component = () => {
         <TransferFilePage files={files} />
       </Match>
       <Match when={page().type === "transferFileCompleted"}>
-        <div>done</div>
+        <TransferFileCompletedPage />
       </Match>
     </Switch>
   );

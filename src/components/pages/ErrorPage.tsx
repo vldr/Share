@@ -20,10 +20,7 @@ const ErrorPage: Component<{ message: string }> = (props) => {
       <svg
         class="w-32 h-32 mb-[-20px]"
         xmlns="http://www.w3.org/2000/svg"
-        data-name="Layer 1"
-        viewBox="0 0 100 125.0125"
-        x="0px"
-        y="0px">
+        viewBox="0 0 100 125.0125">
         <path
           fill="#ff3b3b"
           d="M50,14.57A35.44,35.44,0,1,0,85.43,50,35.47,35.47,0,0,0,50,14.57Zm-1.74,15.1a1.74,1.74,0,0,1,3.48,0V57.6a1.74,1.74,0,0,1-3.48,0ZM50,71a3.08,3.08,0,1,1,3.07-3.08A3.07,3.07,0,0,1,50,71Z"

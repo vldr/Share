@@ -15,6 +15,7 @@ import { NetworkReceiver } from "../network/NetworkReceiver";
 import ErrorPage from "./pages/ErrorPage";
 import LoadingPage from "./pages/LoadingPage";
 import TransferFilePage from "./pages/TransferFilePage";
+import TransferFileCompletedPage from "./pages/TransferFileCompletedPage";
 
 const Receiver: Component = () => {
   let index: number;
@@ -151,7 +152,7 @@ const Receiver: Component = () => {
         <TransferFilePage files={files} />
       </Match>
       <Match when={page().type === "transferFileCompleted"}>
-        <div>done</div>
+        <TransferFileCompletedPage />
       </Match>
     </Switch>
   );
