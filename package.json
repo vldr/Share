@@ -19,7 +19,7 @@
     "vite-plugin-solid": "^2.7.0"
   },
   "dependencies": {
-    "sirdez": "^0.1.0",
+    "sirdez": "github:weisrc/sirdez#ci",
     "solid-js": "^1.7.6"
   }
 }

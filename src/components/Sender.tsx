@@ -42,11 +42,11 @@ const Sender: Component = () => {
     setPage({ type: "invite" });
   };
 
-  const onJoinRoom = () => {
+  const onJoinRoom = async () => {
     setPage({ type: "transferFile" });
 
-    sendList();
-    sendChunks();
+    await sendList();
+    await sendChunks();
   };
 
   const onError = (message: string) => {
@@ -65,12 +65,15 @@ const Sender: Component = () => {
 
     for (let index = 0; index < fileList.length; index++) {
       const file = fileList[index];
+      const [progress, setProgress] = createSignal<number>(0);
 
       files.push({
         index,
         file,
 
-        progress: createSignal<number>(0),
+        progress,
+        setProgress,
+
         name: file.name,
         size: file.size,
       });
@@ -91,21 +94,6 @@ const Sender: Component = () => {
     sendChunk();
   };
 
-  const sendList = () => {
-    const packet = createPacket("List", []);
-
-    for (const file of files()) {
-      packet.value.push({
-        index: file.index,
-        name: file.name,
-        size: file.size,
-      });
-    }
-
-    const data = serializePacket(packet);
-    network.send(data);
-  };
-
   const sendChunk = () => {
     if (size === 0) {
       if (index === files().length - 1) {
@@ -119,7 +107,6 @@ const Sender: Component = () => {
     }
 
     const file = files()[index].file;
-
     if (!file) {
       setPage({ type: "error", message: "File handle is invalid." });
       return;
@@ -144,6 +131,21 @@ const Sender: Component = () => {
     size = files()[index].size;
 
     sendChunk();
+  };
+
+  const sendList = () => {
+    const packet = createPacket("List", []);
+
+    for (const file of files()) {
+      packet.value.push({
+        index: file.index,
+        name: file.name,
+        size: file.size,
+      });
+    }
+
+    const data = serializePacket(packet);
+    network.send(data);
   };
 
   const fileReader = new FileReader();

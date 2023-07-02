@@ -45,7 +45,7 @@ const Packet = oneOf(uint8, {
   Chunk,
 });
 
-const { fromBytes, toUnsafeBytes } = use(Packet);
+const { fromBytes, toBytes } = use(Packet);
 
 type PacketInner<T extends string> = Extract<
   GetType<typeof Packet>,
@@ -62,7 +62,7 @@ export function createPacket<T extends string>(
 }
 
 export function serializePacket(packet: GetType<typeof Packet>): Uint8Array {
-  return toUnsafeBytes(packet);
+  return toBytes(packet);
 }
 
 export function deserializePacket(data: Uint8Array): GetType<typeof Packet> {

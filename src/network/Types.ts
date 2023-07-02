@@ -1,4 +1,4 @@
-import { Signal } from "solid-js";
+import { Accessor, Setter } from "solid-js";
 
 export type ErrorPageType = {
   type: "error";
@@ -33,7 +33,9 @@ export type FileType = {
   index: number;
   name: string;
   size: number;
-  progress: Signal<number>;
+
+  setProgress: Setter<number>;
+  progress: Accessor<number>;
 
   file: File | undefined;
 };
