@@ -19,7 +19,8 @@ export class NetworkReceiver {
     URI: string,
     private readonly inviteCode: string | undefined,
     private readonly messageCallback: (data: Uint8Array) => void,
-    private readonly errorCallback: (message: string) => void
+    private readonly errorCallback: (message: string) => void,
+    private readonly leaveRoomCallback: () => void
   ) {
     this.webSocket = new WebSocket(URI);
     this.webSocket.onopen = this.onOpen.bind(this);
@@ -93,11 +94,13 @@ export class NetworkReceiver {
   }
 
   private async onClose() {
-    return this.error("Network closed.");
+    return this.error("The connection to the network was closed.");
   }
 
   private async onError() {
-    return this.error("Network error.");
+    return this.error(
+      "The connection to the network was closed due to an error."
+    );
   }
 
   private async onMessage(event: MessageEvent) {
@@ -143,7 +146,8 @@ export class NetworkReceiver {
   }
 
   private async onLeaveRoom() {
-    return this.error("The sender has left the room.");
+    this.close();
+    this.leaveRoomCallback();
   }
 
   private async onHandshake(packet: Packet<"Handshake">) {
@@ -208,11 +212,14 @@ export class NetworkReceiver {
     }
   }
 
-  public error(message: string) {
+  private close() {
     if (this.webSocket.readyState === this.webSocket.OPEN) {
       this.sendJSON({ type: "leave" });
     }
+  }
 
+  public error(message: string) {
+    this.close();
     this.errorCallback(message);
   }
 

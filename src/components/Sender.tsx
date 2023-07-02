@@ -52,7 +52,13 @@ const Sender: Component = () => {
   };
 
   const onLeaveRoom = () => {
-    setPage({ type: "invite" });
+    for (const file of files()) {
+      file.setProgress(0);
+    }
+
+    if (page().type === "transferFile") {
+      setPage({ type: "invite" });
+    }
   };
 
   const onJoinRoom = async () => {
@@ -70,6 +76,10 @@ const Sender: Component = () => {
     const file = files().at(packet.index);
     if (!file) {
       return network.error("Expected valid progress packet index.");
+    }
+
+    if (packet.progress === 100 && packet.index === files().length - 1) {
+      setPage({ type: "transferFileCompleted" });
     }
 
     file.setProgress(packet.progress);
@@ -199,6 +209,9 @@ const Sender: Component = () => {
       </Match>
       <Match when={page().type === "transferFile"}>
         <TransferFilePage files={files} />
+      </Match>
+      <Match when={page().type === "transferFileCompleted"}>
+        <div>done</div>
       </Match>
     </Switch>
   );

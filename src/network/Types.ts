@@ -22,12 +22,17 @@ export type TransferFilePageType = {
   type: "transferFile";
 };
 
+export type TransferCompletedFilePageType = {
+  type: "transferFileCompleted";
+};
+
 export type PageType =
   | ErrorPageType
   | LoadingPageType
   | SelectFilePageType
   | InvitePageType
-  | TransferFilePageType;
+  | TransferFilePageType
+  | TransferCompletedFilePageType;
 
 export type FileType = {
   index: number;

@@ -43,6 +43,14 @@ const Receiver: Component = () => {
     setPage({ type: "error", message });
   };
 
+  const onLeaveRoom = () => {
+    if (page().type !== "transferFileCompleted") {
+      return network.error(
+        "File transfer was interrupted because the sender left."
+      );
+    }
+  };
+
   const onList = (packet: Packet<"List">) => {
     const files: FileType[] = [];
 
@@ -107,6 +115,10 @@ const Receiver: Component = () => {
     length = 0;
     progress = 0;
     buffer = [];
+
+    if (index === files().length) {
+      setPage({ type: "transferFileCompleted" });
+    }
   };
 
   const onProgress = (file: FileType) => {
@@ -123,7 +135,8 @@ const Receiver: Component = () => {
     location.hash.replace("#", ""),
 
     onMessage,
-    onError
+    onError,
+    onLeaveRoom
   );
 
   return (
@@ -136,6 +149,9 @@ const Receiver: Component = () => {
       </Match>
       <Match when={page().type === "transferFile"}>
         <TransferFilePage files={files} />
+      </Match>
+      <Match when={page().type === "transferFileCompleted"}>
+        <div>done</div>
       </Match>
     </Switch>
   );

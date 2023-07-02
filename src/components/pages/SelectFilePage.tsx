@@ -67,7 +67,7 @@ const SelectFilePage: Component<{
           <button
             onClick={onClick}
             class="transition w-fit font-bold bg-[#0060df] py-3 px-6 rounded hover:bg-[#2e75d1] mr-2">
-            Select files to upload
+            Select files to share
           </button>
 
           <input
