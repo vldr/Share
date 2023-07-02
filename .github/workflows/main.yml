@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-node@v1
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --verbose
 
       - name: Build
         run: npm run build
