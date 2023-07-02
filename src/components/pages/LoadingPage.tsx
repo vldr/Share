@@ -1,6 +1,6 @@
 import { Component } from "solid-js";
 
-const Loading: Component<{ message: string }> = (props) => {
+const LoadingPage: Component<{ message: string }> = (props) => {
   return (
     <div class="flex flex-col h-fit min-h-screen justify-center items-center p-5">
       <svg
@@ -24,4 +24,4 @@ const Loading: Component<{ message: string }> = (props) => {
   );
 };
 
-export default Loading;
+export default LoadingPage;

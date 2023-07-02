@@ -1,13 +1,14 @@
 import { Component } from "solid-js";
-import { NetworkSender } from "../../network/NetworkSender";
-import Logo from "../assets/logo.svg";
+import Logo from "../../assets/logo.svg";
 
-const SelectFilePage: Component<{ network: NetworkSender }> = (props) => {
+const SelectFilePage: Component<{
+  selectFiles: (fileList: FileList) => void;
+}> = (props) => {
   const onChange = (event: Event) => {
     const target = event.target as HTMLInputElement;
 
     if (target.files) {
-      props.network.init();
+      props.selectFiles(target.files);
     }
   };
 
@@ -21,7 +22,7 @@ const SelectFilePage: Component<{ network: NetworkSender }> = (props) => {
     <div class="flex h-fit min-h-screen justify-center md:items-center items-start">
       <div class="flex flex-col-reverse md:flex-row max-w-[53rem] bg-[#23272c] shadow-lg rounded-md overflow-hidden text-center">
         <div class="flex-col">
-          <div class="flex flex-col items-center justify-center border-2 border-dashed border-[#64676e] px-[100px] py-[150px]">
+          <div class="flex flex-col items-center justify-center border-2 border-dashed rounded-md border-[#64676e] px-[100px] py-[150px]">
             <svg class="h-10 w-10 mb-3" fill="#fff" viewBox="0 0 32 32">
               <path
                 d="M16 0c-8.836 0-16 7.163-16 16s7.163 16 16 16c8.837 0 16-7.163 16-16s-7.163-16-16-16zM16 30.032c-7.72 0-14-6.312-14-14.032s6.28-14 
