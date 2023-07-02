@@ -1,8 +1,10 @@
-import { Component } from "solid-js";
+import { Component, createSignal } from "solid-js";
 
 const SelectFilePage: Component<{
   selectFiles: (fileList: FileList) => void;
 }> = (props) => {
+  const [highlight, setHighlight] = createSignal(false);
+
   const onChange = (event: Event) => {
     const target = event.target as HTMLInputElement;
 
@@ -23,6 +25,17 @@ const SelectFilePage: Component<{
 
   const onDragOver = (event: DragEvent) => {
     event.preventDefault();
+
+    setHighlight(true);
+  };
+
+  const onDragLeave = (event: any) => {
+    if (
+      event.target === dropElement &&
+      !dropElement?.contains(event.fromElement)
+    ) {
+      setHighlight(false);
+    }
   };
 
   const onClick = () => {
@@ -30,6 +43,7 @@ const SelectFilePage: Component<{
   };
 
   let inputElement: HTMLInputElement | undefined;
+  let dropElement: HTMLDivElement | undefined;
 
   return (
     <div class="flex h-fit min-h-screen justify-center md:items-center items-start">
@@ -37,8 +51,11 @@ const SelectFilePage: Component<{
         <div class="flex-col">
           <div
             class="flex flex-col items-center justify-center border-2 border-dashed rounded-md border-[#64676e] px-[100px] py-[150px]"
+            ref={dropElement}
+            style={highlight() ? { "border-color": "whitesmoke" } : {}}
             onDrop={onDrop}
-            onDragOver={onDragOver}>
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}>
             <svg class="h-10 w-10 mb-3" fill="#fff" viewBox="0 0 32 32">
               <path
                 d="M16 0c-8.836 0-16 7.163-16 16s7.163 16 16 16c8.837 0 16-7.163 16-16s-7.163-16-16-16zM16 30.032c-7.72 0-14-6.312-14-14.032s6.28-14 
