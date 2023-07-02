@@ -11,6 +11,7 @@ import InvitePage from "./pages/InvitePage";
 import LoadingPage from "./pages/LoadingPage";
 import SelectFilePage from "./pages/SelectFilePage";
 import { createPacket, serializePacket } from "../network/Packet";
+import TransferFilePage from "./pages/TransferFilePage";
 
 const Sender: Component = () => {
   const CHUNK_SIZE = 65535;
@@ -174,6 +175,9 @@ const Sender: Component = () => {
       </Match>
       <Match when={page().type === "selectFile"}>
         <SelectFilePage selectFiles={onSelectFiles} />
+      </Match>
+      <Match when={page().type === "transferFile"}>
+        <TransferFilePage files={files()} />
       </Match>
     </Switch>
   );

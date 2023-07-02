@@ -1,8 +1,42 @@
 import { Component } from "solid-js";
+import { FileType } from "../../network/Types";
 
-const TransferFilePage: Component = () => {
+const TransferFilePage: Component<{ files: FileType[] }> = (props) => {
   return (
-    <div class="flex flex-col h-fit min-h-screen justify-center items-center p-5"></div>
+    <div class="flex flex-col h-fit min-h-screen justify-center items-center p-5 text-center">
+      <div class="text-4xl max-w-lg mb-3">Transferring files...</div>
+      <div class="text-lg max-w-lg mb-6">
+        Keep your <b>browser tab open</b> as files are sent in real-time.
+      </div>
+      <div class="flex flex-col gap-3">
+        <div class="flex flex-col bg-[#23272c] shadow-lg rounded-md text-left p-4 w-[500px]">
+          <div class="flex flex-row">
+            <div class="mr-2">
+              <svg
+                class="w-12 h-12 invert"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 100 100">
+                <path d="m79.46,22.56l-6.67-7.04-3.92-4.14c-.33-.35-.7-.62-1.1-.84-.23-.13-.48-.23-.73-.31-.07-.02-.13-.05-.2-.07h0s0,0,0,0v11.08c0,1.26.87,2.32,2.04,2.61.21.05.43.09.66.09h10.81s0,0,0,0h0c-.23-.51-.52-.99-.9-1.39Z" />
+                <path d="m27.79,10c-4.75,0-8.61,4.12-8.61,9.19v61.62c0,5.07,3.86,9.19,8.61,9.19h44.41c4.75,0,8.61-4.12,8.61-9.19V27.2h-11.26c-3.28,0-5.95-2.67-5.95-5.95v-11.25H27.79Zm4.58,17.57h17.62c.9,0,1.62.72,1.62,1.62s-.72,1.62-1.62,1.62h-17.62c-.9,0-1.62-.72-1.62-1.62s.72-1.62,1.62-1.62Zm35.24,44.86h-35.24c-.9,0-1.62-.72-1.62-1.62s.72-1.62,1.62-1.62h35.24c.9,0,1.62.72,1.62,1.62s-.72,1.62-1.62,1.62Zm0-24.05c.9,0,1.62.72,1.62,1.62s-.72,1.62-1.62,1.62h-35.24c-.9,0-1.62-.72-1.62-1.62s.72-1.62,1.62-1.62h35.24Z" />
+              </svg>
+            </div>
+            <div class="flex flex-col items-start">
+              <div class="font-bold">README.md</div>
+              <div>24.3 KB</div>
+            </div>
+          </div>
+
+          <div class="flex flex-col px-2">
+            <div class="text-[#2f88fc] font-bold mb-1 mt-2">53%</div>
+            <div class="w-full bg-gray-700 rounded-full h-1.5 mb-2">
+              <div
+                class="bg-[#2f88fc] h-1.5 rounded-full"
+                style="width: 45%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

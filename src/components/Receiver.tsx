@@ -17,8 +17,9 @@ import LoadingPage from "./pages/LoadingPage";
 import TransferFilePage from "./pages/TransferFilePage";
 
 const Receiver: Component = () => {
-  let buffer: Blob[] = [];
+  let index: number = 0;
   let length: number = 0;
+  let buffer: Blob[] = [];
 
   const [files, setFiles] = createSignal<FileType[]>([]);
   const [page, setPage] = createSignal<PageType>({
@@ -65,7 +66,7 @@ const Receiver: Component = () => {
         <LoadingPage message={(page() as LoadingPageType).message} />
       </Match>
       <Match when={page().type === "transferFile"}>
-        <TransferFilePage />
+        <TransferFilePage files={files()} />
       </Match>
     </Switch>
   );
