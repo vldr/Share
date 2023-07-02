@@ -1,48 +1,27 @@
+import {
+  PageType,
+  FileType,
+  ErrorPageType,
+  LoadingPageType,
+} from "../network/Types";
 import { Component, Match, Switch, createSignal } from "solid-js";
 import { NetworkSender } from "../network/NetworkSender";
 import ErrorPage from "./pages/ErrorPage";
 import InvitePage from "./pages/InvitePage";
 import LoadingPage from "./pages/LoadingPage";
 import SelectFilePage from "./pages/SelectFilePage";
-
-type ErrorPage = {
-  type: "error";
-  message: string;
-};
-
-type LoadingPage = {
-  type: "loading";
-  message: string;
-};
-
-type SelectFilePage = {
-  type: "selectFile";
-};
-
-type InvitePage = {
-  type: "invite";
-};
-
-type TransferFilePage = {
-  type: "transferFile";
-};
-
-type Page =
-  | ErrorPage
-  | LoadingPage
-  | SelectFilePage
-  | InvitePage
-  | TransferFilePage;
-
-type Files = {
-  index: number;
-  progress: number;
-  file: File;
-}[];
+import { createPacket, serializePacket } from "../network/Packet";
 
 const Sender: Component = () => {
-  const [files, setFiles] = createSignal<Files>([]);
-  const [page, setPage] = createSignal<Page>({
+  const CHUNK_SIZE = 65535;
+
+  let index: number;
+  let offset: number;
+  let size: number;
+  let chunkSize: number;
+
+  const [files, setFiles] = createSignal<FileType[]>([]);
+  const [page, setPage] = createSignal<PageType>({
     type: "loading",
     message: "Attempting to connect...",
   });
@@ -59,30 +38,116 @@ const Sender: Component = () => {
     setPage({ type: "invite" });
   };
 
-  const onLeaveRoom = () => {};
+  const onLeaveRoom = () => {
+    setPage({ type: "invite" });
+  };
 
-  const onJoinRoom = () => {};
+  const onJoinRoom = () => {
+    setPage({ type: "transferFile" });
+
+    sendList();
+    sendChunks();
+  };
 
   const onError = (message: string) => {
     setPage({ type: "error", message });
   };
 
   const onSelectFiles = (fileList: FileList) => {
-    const files: Files = [];
+    if (fileList.length === 0) {
+      setPage({
+        type: "error",
+        message: "Expected file list to not be empty.",
+      });
+    }
+
+    const files: FileType[] = [];
 
     for (let index = 0; index < fileList.length; index++) {
+      const file = fileList[index];
+
       files.push({
         index,
-        progress: 0,
-        file: fileList[index],
+        file,
+
+        progress: createSignal<number>(0),
+        name: file.name,
+        size: file.size,
       });
     }
 
     setFiles(files);
-    setPage({ type: "loading", message: "Attempt to create room..." });
+    setPage({ type: "loading", message: "Attempting to create room..." });
 
     network.init();
   };
+
+  const onLoad = () => {
+    const chunk = new Uint8Array(fileReader.result as ArrayBuffer);
+    const packet = createPacket("Chunk", { index, chunk });
+    const data = serializePacket(packet);
+    network.send(data);
+
+    sendChunk();
+  };
+
+  const sendList = () => {
+    const packet = createPacket("List", []);
+
+    for (const file of files()) {
+      packet.value.push({
+        index: file.index,
+        name: file.name,
+        size: file.size,
+      });
+    }
+
+    const data = serializePacket(packet);
+    network.send(data);
+  };
+
+  const sendChunk = () => {
+    if (size === 0) {
+      if (index === files().length - 1) {
+        return;
+      }
+
+      index++;
+      offset = 0;
+      chunkSize = CHUNK_SIZE;
+      size = files()[index].size;
+    }
+
+    const file = files()[index].file;
+
+    if (!file) {
+      setPage({ type: "error", message: "File handle is invalid." });
+      return;
+    }
+
+    if (size < chunkSize) {
+      chunkSize = size;
+    }
+
+    const slice = file.slice(offset, offset + chunkSize);
+
+    size -= chunkSize;
+    offset += chunkSize;
+
+    fileReader.readAsArrayBuffer(slice);
+  };
+
+  const sendChunks = () => {
+    index = 0;
+    offset = 0;
+    chunkSize = CHUNK_SIZE;
+    size = files()[index].size;
+
+    sendChunk();
+  };
+
+  const fileReader = new FileReader();
+  fileReader.onload = onLoad;
 
   const network = new NetworkSender(
     import.meta.env.VITE_URI || String(),
@@ -97,10 +162,10 @@ const Sender: Component = () => {
   return (
     <Switch>
       <Match when={page().type === "error"}>
-        <ErrorPage message={(page() as ErrorPage).message} />
+        <ErrorPage message={(page() as ErrorPageType).message} />
       </Match>
       <Match when={page().type === "loading"}>
-        <LoadingPage message={(page() as LoadingPage).message} />
+        <LoadingPage message={(page() as LoadingPageType).message} />
       </Match>
       <Match when={page().type === "invite"}>
         <InvitePage />

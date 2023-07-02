@@ -33,7 +33,8 @@ const Progress = struct({
 });
 
 const Chunk = struct({
-  data: bytes(uint16),
+  index: uint32,
+  chunk: bytes(uint16),
 });
 
 const Packet = oneOf(uint8, {
