@@ -45,9 +45,14 @@ export class NetworkReceiver {
       return this.error("Invalid URL components.");
     }
 
-    const keyData = Uint8Array.from(atob(key), (character) =>
-      character.charCodeAt(0)
-    );
+    let keyData;
+    try {
+      keyData = Uint8Array.from(atob(key), (character) =>
+        character.charCodeAt(0)
+      );
+    } catch (error) {
+      return this.error("Failed to decode key data: " + error);
+    }
 
     try {
       this.HMACKey = await window.crypto.subtle.importKey(
