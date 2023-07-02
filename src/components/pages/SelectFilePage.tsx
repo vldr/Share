@@ -55,7 +55,11 @@ const SelectFilePage: Component<{
           onDrop={onDrop}
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}>
-          <svg class="h-10 w-10 mb-3" fill="#fff" viewBox="0 0 32 32">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-10 w-10 mb-3"
+            fill="#fff"
+            viewBox="0 0 32 32">
             <path
               d="M16 0c-8.836 0-16 7.163-16 16s7.163 16 16 16c8.837 0 16-7.163 16-16s-7.163-16-16-16zM16 30.032c-7.72 0-14-6.312-14-14.032s6.28-14 
                 14-14 14 6.28 14 14-6.28 14.032-14 14.032zM23 15h-6v-6c0-0.552-0.448-1-1-1s-1 0.448-1 1v6h-6c-0.552 0-1 0.448-1 1s0.448 1 1 1h6v6c0 
@@ -81,12 +85,9 @@ const SelectFilePage: Component<{
         <div class="flex flex-col bg-[#101214] pb-7 w-full md:pb-0 md:w-[21rem]">
           <div class="flex flex-row m-7 mb-6 items-center">
             <div class="bg-[#0060df] h-14 w-14 p-1 rounded-lg mr-5">
-              <svg
-                class="invert"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 36 45">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 45">
                 <path
-                  class="cls-1"
+                  fill="#fff"
                   d="M18,2A16,16,0,1,0,34,18,16,16,0,0,0,18,2Zm9.57,18.18C24.45,21.85,18,24.89,14.5,26.57A3.6,3.6,0,0,1,13,26.9a3.45,3.45,0,
                   0,1-2-.63,3.78,3.78,0,0,1-1.6-3.13V21.43h2.29v1.71a1.52,1.52,0,0,0,.62,1.26,1.2,1.2,0,0,0,1.19.1c3.53-1.67,9.9-4.7,13-6.33a.21.21,0,
                   0,0,0-.32c-3.1-1.66-9.46-4.69-13-6.34a1.19,1.19,0,0,0-1.2.1,1.51,1.51,0,0,0-.62,1.26v2.74a1.13,1.13,0,0,0,1.05,1.25h2.38v2.29H12.77a3.41,
@@ -100,10 +101,10 @@ const SelectFilePage: Component<{
             </div>
           </div>
           <div class="mx-7 text-gray-300 text-justify">
-            A real-time, peer-to-peer file transfer application allows you to
-            send files of any size by simply selecting your files and sending a
-            link. Your files are sent in real-time and are not stored on any
-            server. No sign-ups are required.
+            Share is a real-time, peer-to-peer file transfer platform with a
+            focus on security. With Share, you can send files of any size, and
+            you can have peace of mind knowing that your files will be sent
+            using end-to-end encryption and will never be stored on any server.
           </div>
         </div>
       </div>

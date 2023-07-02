@@ -4,14 +4,14 @@ import {
   ErrorPageType,
   LoadingPageType,
 } from "../network/Types";
-import { Component, Match, Switch, createSignal } from "solid-js";
-import { NetworkSender } from "../network/NetworkSender";
 import {
   Packet,
   createPacket,
   deserializePacket,
   serializePacket,
 } from "../network/Packet";
+import { NetworkSender } from "../network/NetworkSender";
+import { Component, Match, Switch, createSignal } from "solid-js";
 import ErrorPage from "./pages/ErrorPage";
 import InvitePage from "./pages/InvitePage";
 import LoadingPage from "./pages/LoadingPage";
@@ -87,6 +87,10 @@ const Sender: Component = () => {
   };
 
   const onSelectFiles = (fileList: FileList) => {
+    if (page().type !== "selectFile") {
+      return;
+    }
+
     if (fileList.length === 0) {
       return network.error("Expected file list to not be empty.");
     }
