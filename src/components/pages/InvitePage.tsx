@@ -11,7 +11,7 @@ const InvitePage: Component = () => {
   };
 
   return (
-    <div class="flex flex-col h-fit min-h-screen justify-center items-center p-5 text-center">
+    <div class="flex flex-col h-fit min-dvh-screen justify-center items-center px-8 text-center">
       <div class="text-4xl max-w-lg mb-3">
         Your file(s) are ready to send...
       </div>

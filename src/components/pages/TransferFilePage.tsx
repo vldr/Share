@@ -15,7 +15,7 @@ const TransferFilePage: Component<{ files: Accessor<FileType[]> }> = (
   };
 
   return (
-    <div class="flex flex-col h-fit min-h-screen justify-center items-center py-5 text-center">
+    <div class="flex flex-col h-fit min-dvh-screen justify-center items-center p-8 text-center">
       <div class="text-4xl max-w-lg mb-3">Transferring files...</div>
       <div class="text-lg max-w-lg mb-6 px-3">
         Keep your <b>browser tab open</b> as files are sent in real-time.

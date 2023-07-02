@@ -15,3 +15,11 @@ body {
     background: #1a1d21;
     color: white;
 }
+
+.min-dvh-screen {
+    min-height: 100dvh;
+}
+
+.dvh-screen {
+    height: 100dvh;
+}

@@ -16,7 +16,7 @@ const ErrorPage: Component<{ message: string }> = (props) => {
   };
 
   return (
-    <div class="flex flex-col h-fit min-h-screen justify-center items-center p-5">
+    <div class="flex flex-col h-fit min-dvh-screen justify-center items-center px-8 text-center">
       <svg
         class="w-32 h-32 mb-[-20px]"
         xmlns="http://www.w3.org/2000/svg"
