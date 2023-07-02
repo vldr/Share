@@ -115,7 +115,7 @@ const Sender: Component = () => {
 
   const sendChunk = () => {
     if (page().type !== "transferFile") {
-      return network.error("Transfer cancelled.");
+      return;
     }
 
     if (size === 0) {

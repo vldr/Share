@@ -1,5 +1,4 @@
 import { Component, Show } from "solid-js";
-import Error from "../../assets/error.svg";
 
 const ErrorPage: Component<{ message: string }> = (props) => {
   const onRetryClick = () => {
@@ -18,7 +17,18 @@ const ErrorPage: Component<{ message: string }> = (props) => {
 
   return (
     <div class="flex flex-col h-fit min-h-screen justify-center items-center p-5">
-      <img class="w-32 h-32 mb-[-20px]" src={Error} />
+      <svg
+        class="w-32 h-32 mb-[-20px]"
+        xmlns="http://www.w3.org/2000/svg"
+        data-name="Layer 1"
+        viewBox="0 0 100 125.0125"
+        x="0px"
+        y="0px">
+        <path
+          fill="#ff3b3b"
+          d="M50,14.57A35.44,35.44,0,1,0,85.43,50,35.47,35.47,0,0,0,50,14.57Zm-1.74,15.1a1.74,1.74,0,0,1,3.48,0V57.6a1.74,1.74,0,0,1-3.48,0ZM50,71a3.08,3.08,0,1,1,3.07-3.08A3.07,3.07,0,0,1,50,71Z"
+        />
+      </svg>
       <div class="text-4xl text-white">Error</div>
       <div class="text-xl text-white max-w-lg mt-3 mb-5 text-center">
         {props.message}
