@@ -203,7 +203,7 @@ export class NetworkReceiver {
     }
   }
 
-  private error(message: string) {
+  public error(message: string) {
     if (this.webSocket.readyState === this.webSocket.OPEN) {
       this.sendJSON({ type: "leave" });
     }

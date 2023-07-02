@@ -33,7 +33,6 @@ const Progress = struct({
 });
 
 const Chunk = struct({
-  index: uint32,
   chunk: bytes(uint16),
 });
 

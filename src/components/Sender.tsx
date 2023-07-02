@@ -6,11 +6,11 @@ import {
 } from "../network/Types";
 import { Component, Match, Switch, createSignal } from "solid-js";
 import { NetworkSender } from "../network/NetworkSender";
+import { createPacket, serializePacket } from "../network/Packet";
 import ErrorPage from "./pages/ErrorPage";
 import InvitePage from "./pages/InvitePage";
 import LoadingPage from "./pages/LoadingPage";
 import SelectFilePage from "./pages/SelectFilePage";
-import { createPacket, serializePacket } from "../network/Packet";
 import TransferFilePage from "./pages/TransferFilePage";
 
 const Sender: Component = () => {
@@ -56,10 +56,7 @@ const Sender: Component = () => {
 
   const onSelectFiles = (fileList: FileList) => {
     if (fileList.length === 0) {
-      setPage({
-        type: "error",
-        message: "Expected file list to not be empty.",
-      });
+      return network.error("Expected file list to not be empty.");
     }
 
     const files: FileType[] = [];
@@ -88,7 +85,7 @@ const Sender: Component = () => {
 
   const onLoad = () => {
     const chunk = new Uint8Array(fileReader.result as ArrayBuffer);
-    const packet = createPacket("Chunk", { index, chunk });
+    const packet = createPacket("Chunk", { chunk });
     const data = serializePacket(packet);
     network.send(data);
 
@@ -109,8 +106,7 @@ const Sender: Component = () => {
 
     const file = files()[index].file;
     if (!file) {
-      setPage({ type: "error", message: "File handle is invalid." });
-      return;
+      return network.error("File handle is invalid.");
     }
 
     if (size < chunkSize) {
@@ -177,7 +173,7 @@ const Sender: Component = () => {
         <SelectFilePage selectFiles={onSelectFiles} />
       </Match>
       <Match when={page().type === "transferFile"}>
-        <TransferFilePage files={files()} />
+        <TransferFilePage files={files} />
       </Match>
     </Switch>
   );

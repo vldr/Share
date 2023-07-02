@@ -4,22 +4,22 @@ import {
   ErrorPageType,
   LoadingPageType,
 } from "../network/Types";
-import { Component, Match, Switch, createSignal } from "solid-js";
-import { NetworkReceiver } from "../network/NetworkReceiver";
 import {
   Packet,
   createPacket,
   deserializePacket,
   serializePacket,
 } from "../network/Packet";
+import { Component, Match, Switch, createSignal } from "solid-js";
+import { NetworkReceiver } from "../network/NetworkReceiver";
 import ErrorPage from "./pages/ErrorPage";
 import LoadingPage from "./pages/LoadingPage";
 import TransferFilePage from "./pages/TransferFilePage";
 
 const Receiver: Component = () => {
-  let index: number = 0;
-  let length: number = 0;
-  let buffer: Blob[] = [];
+  let index: number;
+  let length: number;
+  let buffer: Uint8Array[];
 
   const [files, setFiles] = createSignal<FileType[]>([]);
   const [page, setPage] = createSignal<PageType>({
@@ -43,16 +43,69 @@ const Receiver: Component = () => {
   };
 
   const onList = (packet: Packet<"List">) => {
-    console.log(packet);
+    const files: FileType[] = [];
+
+    for (const file of packet) {
+      const [progress, setProgress] = createSignal<number>(0);
+
+      files.push({
+        name: file.name,
+        index: file.index,
+        size: file.size,
+
+        progress,
+        setProgress,
+
+        file: undefined,
+      });
+    }
+
+    index = 0;
+    length = 0;
+    buffer = [];
+
+    setFiles(files);
+    setPage({ type: "transferFile" });
   };
 
   const onChunk = (packet: Packet<"Chunk">) => {
-    console.log(packet);
+    const file = files()[index];
+    if (!file) {
+      return network.error("Chunk packet does not match a given index.");
+    }
+
+    buffer.push(packet.chunk);
+    length += packet.chunk.byteLength;
+
+    file.setProgress((length / file.size) * 100);
+
+    if (file.size === length) {
+      onChunkFinish(file);
+    }
+  };
+
+  const onChunkFinish = (file: FileType) => {
+    const blob = new Blob(buffer);
+
+    const a = document.createElement("a");
+    document.body.appendChild(a);
+
+    const url = window.URL.createObjectURL(blob);
+    a.href = url;
+    a.download = file.name;
+    a.click();
+
+    window.URL.revokeObjectURL(url);
+
+    index++;
+    length = 0;
+    buffer = [];
   };
 
   const network = new NetworkReceiver(
     import.meta.env.VITE_URI || String(),
     location.hash.replace("#", ""),
+
     onMessage,
     onError
   );
@@ -66,7 +119,7 @@ const Receiver: Component = () => {
         <LoadingPage message={(page() as LoadingPageType).message} />
       </Match>
       <Match when={page().type === "transferFile"}>
-        <TransferFilePage files={files()} />
+        <TransferFilePage files={files} />
       </Match>
     </Switch>
   );
