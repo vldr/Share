@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "lib": ["WebWorker"],
+    "moduleResolution": "Node",
+    "declaration": true,
+    "strict": true,
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "module": "CommonJS",
+    "outDir": "build"
+  },
+  "include": ["./src"],
+  "ts-node": {
+    "transpileOnly": true
+  }
+}

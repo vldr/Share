@@ -1,0 +1,23 @@
+# files
+.prettierrc
+.gitignore
+.prettierignore
+.eslintignore
+.eslintrc
+jest.config.ts
+vite.config.ts
+tsconfig.json
+typedoc.json
+yarn.lock
+
+# dirs
+.github
+src
+scripts
+doc
+test
+perf
+
+# generated
+docs
+deno_dist

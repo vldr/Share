@@ -1,0 +1,11 @@
+# code gen
+docs
+build
+dist
+deno_dist
+
+# node
+node_modules
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

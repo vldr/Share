@@ -1,0 +1,5 @@
+# Performance
+
+<ClientOnly>
+<BenchmarkList/>
+</ClientOnly>
