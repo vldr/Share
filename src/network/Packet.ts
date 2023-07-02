@@ -22,7 +22,6 @@ type PacketInner<T extends string> = Extract<
   { type: T }
 >;
 
-export type PacketUnion = GetType<typeof Packet>;
 export type Packet<T extends string> = PacketInner<T>["value"];
 
 export function createPacket<T extends string>(

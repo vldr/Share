@@ -1,6 +1,5 @@
 import {
   Packet,
-  PacketUnion,
   createPacket,
   deserializePacket,
   serializePacket,
@@ -9,6 +8,7 @@ import {
 export class NetworkSender {
   private readonly ROOM_SIZE = 2;
   private readonly IV_SIZE = 12;
+  private readonly DESTINATION = 1;
 
   private keyPair: CryptoKeyPair | undefined;
   private HMACKey: CryptoKey | undefined;
@@ -254,7 +254,7 @@ export class NetworkSender {
   }
 
   public async send(data: Uint8Array) {
-    const index = new Uint8Array([255]);
+    const index = new Uint8Array([this.DESTINATION]);
 
     if (this.sharedKey) {
       const iv = window.crypto.getRandomValues(new Uint8Array(12));
