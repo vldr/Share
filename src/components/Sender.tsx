@@ -6,7 +6,12 @@ import {
 } from "../network/Types";
 import { Component, Match, Switch, createSignal } from "solid-js";
 import { NetworkSender } from "../network/NetworkSender";
-import { createPacket, serializePacket } from "../network/Packet";
+import {
+  Packet,
+  createPacket,
+  deserializePacket,
+  serializePacket,
+} from "../network/Packet";
 import ErrorPage from "./pages/ErrorPage";
 import InvitePage from "./pages/InvitePage";
 import LoadingPage from "./pages/LoadingPage";
@@ -27,7 +32,14 @@ const Sender: Component = () => {
     message: "Attempting to connect...",
   });
 
-  const onMessage = (data: Uint8Array) => {};
+  const onMessage = (data: Uint8Array) => {
+    const packet = deserializePacket(data);
+
+    switch (packet.type) {
+      case "Progress":
+        return onProgress(packet.value);
+    }
+  };
 
   const onOpen = () => {
     setPage({ type: "selectFile" });
@@ -52,6 +64,15 @@ const Sender: Component = () => {
 
   const onError = (message: string) => {
     setPage({ type: "error", message });
+  };
+
+  const onProgress = (packet: Packet<"Progress">) => {
+    const file = files().at(packet.index);
+    if (!file) {
+      return network.error("Expected valid progress packet index.");
+    }
+
+    file.setProgress(packet.progress);
   };
 
   const onSelectFiles = (fileList: FileList) => {
@@ -93,6 +114,10 @@ const Sender: Component = () => {
   };
 
   const sendChunk = () => {
+    if (page().type !== "transferFile") {
+      return network.error("Transfer cancelled.");
+    }
+
     if (size === 0) {
       if (index === files().length - 1) {
         return;

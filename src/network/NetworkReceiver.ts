@@ -193,7 +193,7 @@ export class NetworkReceiver {
         this.keyPair.privateKey,
         {
           name: "AES-GCM",
-          length: 256,
+          length: 128,
         },
         false,
         ["encrypt", "decrypt"]

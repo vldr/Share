@@ -19,6 +19,7 @@ import TransferFilePage from "./pages/TransferFilePage";
 const Receiver: Component = () => {
   let index: number;
   let length: number;
+  let progress: number;
   let buffer: Uint8Array[];
 
   const [files, setFiles] = createSignal<FileType[]>([]);
@@ -62,6 +63,7 @@ const Receiver: Component = () => {
 
     index = 0;
     length = 0;
+    progress = 0;
     buffer = [];
 
     setFiles(files);
@@ -77,7 +79,11 @@ const Receiver: Component = () => {
     buffer.push(packet.chunk);
     length += packet.chunk.byteLength;
 
-    file.setProgress((length / file.size) * 100);
+    file.setProgress(((length / file.size) * 100) >> 0);
+
+    if (file.progress() === 100 || file.progress() - progress > 1) {
+      onProgress(file);
+    }
 
     if (file.size === length) {
       onChunkFinish(file);
@@ -99,7 +105,17 @@ const Receiver: Component = () => {
 
     index++;
     length = 0;
+    progress = 0;
     buffer = [];
+  };
+
+  const onProgress = (file: FileType) => {
+    progress = file.progress();
+
+    const packet = createPacket("Progress", { index: file.index, progress });
+    const data = serializePacket(packet);
+
+    network.send(data);
   };
 
   const network = new NetworkReceiver(
