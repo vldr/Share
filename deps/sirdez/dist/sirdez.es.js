@@ -3,7 +3,7 @@ function createContext(size2 = 4096) {
   return {
     i: 0,
     view: new DataView(buffer),
-    bytes: new Uint8Array(buffer)
+    bytes: new Uint8Array(buffer),
   };
 }
 function growContext(ctx) {
@@ -16,23 +16,21 @@ function contextSer(ctx, ser, data) {
     ctx.i = 0;
     try {
       ser(ctx, data);
-      if (ctx.i < limit)
-        return ctx.bytes;
+      if (ctx.i < limit) return ctx.bytes;
     } catch (error) {
-      if (ctx.i < limit && !(error instanceof RangeError))
-        throw error;
+      if (ctx.i < limit && !(error instanceof RangeError)) throw error;
     }
     growContext(ctx);
   }
 }
 function contextDes(ctx, des, bytes2) {
   const { length } = bytes2;
-  if (length < 4096) {
-    ctx.bytes.set(bytes2);
-    ctx.i = 0;
-  } else {
-    ctx = contextFromBytes(bytes2);
-  }
+  // if (length < 4096) {
+  //   ctx.bytes.set(bytes2);
+  //   ctx.i = 0;
+  // } else {
+  ctx = contextFromBytes(bytes2);
+  // }
   const data = des(ctx);
   if (ctx.i !== length)
     throw RangeError(
@@ -44,11 +42,7 @@ function contextFromBytes(array2) {
   return {
     i: 0,
     bytes: array2,
-    view: new DataView(
-      array2.buffer,
-      array2.byteOffset,
-      array2.byteLength
-    )
+    view: new DataView(array2.buffer, array2.byteOffset, array2.byteLength),
   };
 }
 function define(ser, des) {
@@ -79,7 +73,7 @@ const strSize = {
       uint8.ser(ctx, 219);
       uint32.ser(ctx, size2);
     }
-  }
+  },
 };
 function packMap(ctx, data, floatHead, float, str) {
   const keys = Object.keys(data);
@@ -142,16 +136,11 @@ function unpack(ctx, encoding) {
     case 223:
       return unpackMapBody(ctx, uint32.des(ctx), encoding);
   }
-  if (byte < 128)
-    return byte;
-  if (byte < 144)
-    return unpackMapBody(ctx, byte - 128, encoding);
-  if (byte < 160)
-    return unpackArrayBody(ctx, byte - 144, encoding);
-  if (byte < 192)
-    return encoding.decode(ctx, byte - 160);
-  if (byte >= 224)
-    return byte - 256;
+  if (byte < 128) return byte;
+  if (byte < 144) return unpackMapBody(ctx, byte - 128, encoding);
+  if (byte < 160) return unpackArrayBody(ctx, byte - 144, encoding);
+  if (byte < 192) return encoding.decode(ctx, byte - 160);
+  if (byte >= 224) return byte - 256;
   throw new Error("Unsupported type");
 }
 function packArray(ctx, data, floatHead, float, str) {
@@ -232,13 +221,7 @@ function pack(ctx, data, floatHead, float, str) {
         packArray(ctx, data, floatHead, float, str);
         return;
       }
-      packMap(
-        ctx,
-        data,
-        floatHead,
-        float,
-        str
-      );
+      packMap(ctx, data, floatHead, float, str);
       return;
   }
 }
@@ -258,7 +241,7 @@ function use({ ser, des }, size2) {
     des,
     toBytes: (data) => contextSer(ctx, ser, data).slice(0, ctx.i),
     toUnsafeBytes: (data) => contextSer(ctx, ser, data).subarray(0, ctx.i),
-    fromBytes: (bytes2) => contextDes(ctx, des, bytes2)
+    fromBytes: (bytes2) => contextDes(ctx, des, bytes2),
   };
 }
 const latin1 = {
@@ -274,7 +257,7 @@ const latin1 = {
       codes[i] = ctx.view.getUint8(ctx.i++);
     }
     return String.fromCharCode(...codes);
-  }
+  },
 };
 const ucs2 = {
   encode(ctx, data) {
@@ -292,7 +275,7 @@ const ucs2 = {
       ctx.i += 2;
     }
     return String.fromCharCode(...codes);
-  }
+  },
 };
 const encoder = /* @__PURE__ */ new TextEncoder();
 const decoder = /* @__PURE__ */ new TextDecoder();
@@ -300,7 +283,8 @@ const utf8 = {
   encode(ctx, data) {
     ctx.i += encoder.encodeInto(data, ctx.bytes.subarray(ctx.i)).written;
   },
-  decode: (ctx, size2) => decoder.decode(ctx.bytes.subarray(ctx.i, ctx.i += size2))
+  decode: (ctx, size2) =>
+    decoder.decode(ctx.bytes.subarray(ctx.i, (ctx.i += size2))),
 };
 const utf8js = {
   encode(ctx, data) {
@@ -343,14 +327,12 @@ const utf8js = {
       } else if (s < 224) {
         const b = ctx.view.getUint8(ctx.i + 1);
         ctx.i += 2;
-        codes.push((s & 31) << 6 | b & 63);
+        codes.push(((s & 31) << 6) | (b & 63));
       } else if (s < 240) {
         const b = ctx.view.getUint8(ctx.i + 1);
         const c = ctx.view.getUint8(ctx.i + 2);
         ctx.i += 3;
-        codes.push(
-          (s & 15) << 12 | (b & 63) << 6 | c & 63
-        );
+        codes.push(((s & 15) << 12) | ((b & 63) << 6) | (c & 63));
       } else {
         const u = ctx.view.getUint32(ctx.i);
         const a = (s & 7) << 18;
@@ -362,76 +344,80 @@ const utf8js = {
       }
     }
     return String.fromCodePoint(...codes);
-  }
-};
-const array = (sd, headSd) => define(
-  (ctx, data) => {
-    const { length } = data;
-    headSd.ser(ctx, length);
-    for (let i = 0; i < length; i++) {
-      sd.ser(ctx, data[i]);
-    }
   },
-  (ctx) => {
-    const length = headSd.des(ctx);
-    const data = new Array(length);
-    for (let i = 0; i < length; i++) {
-      data[i] = sd.des(ctx);
+};
+const array = (sd, headSd) =>
+  define(
+    (ctx, data) => {
+      const { length } = data;
+      headSd.ser(ctx, length);
+      for (let i = 0; i < length; i++) {
+        sd.ser(ctx, data[i]);
+      }
+    },
+    (ctx) => {
+      const length = headSd.des(ctx);
+      const data = new Array(length);
+      for (let i = 0; i < length; i++) {
+        data[i] = sd.des(ctx);
+      }
+      return data;
     }
-    return data;
-  }
-);
+  );
 const boolean = define(
   (ctx, data) => void ctx.view.setUint8(ctx.i++, +data),
   (ctx) => !!ctx.view.getUint8(ctx.i++)
 );
-const bytes = (headSd) => define(
-  (ctx, data) => {
-    const { byteLength } = data;
-    headSd.ser(ctx, byteLength);
-    const { i } = ctx;
-    ctx.i += byteLength;
-    ctx.bytes.set(data, i);
-  },
-  (ctx) => {
-    const byteLength = headSd.des(ctx);
-    return ctx.bytes.subarray(ctx.i, ctx.i += byteLength);
-  }
-);
+const bytes = (headSd) =>
+  define(
+    (ctx, data) => {
+      const { byteLength } = data;
+      headSd.ser(ctx, byteLength);
+      const { i } = ctx;
+      ctx.i += byteLength;
+      ctx.bytes.set(data, i);
+    },
+    (ctx) => {
+      const byteLength = headSd.des(ctx);
+      return ctx.bytes.subarray(ctx.i, (ctx.i += byteLength));
+    }
+  );
 const clazz = (clazz2, sd) => ({
   clazz: clazz2,
   ser: sd.ser,
-  des: (ctx) => Object.assign(new clazz2(), sd.des(ctx))
+  des: (ctx) => Object.assign(new clazz2(), sd.des(ctx)),
 });
-const map = (keySd, valueSd, headSd) => define(
-  (ctx, data) => {
-    const { length } = Object.keys(data);
-    headSd.ser(ctx, length);
-    for (const key in data) {
-      keySd.ser(ctx, key);
-      valueSd.ser(ctx, data[key]);
+const map = (keySd, valueSd, headSd) =>
+  define(
+    (ctx, data) => {
+      const { length } = Object.keys(data);
+      headSd.ser(ctx, length);
+      for (const key in data) {
+        keySd.ser(ctx, key);
+        valueSd.ser(ctx, data[key]);
+      }
+    },
+    (ctx) => {
+      const length = headSd.des(ctx);
+      const data = {};
+      for (let i = 0; i < length; i++) {
+        data[keySd.des(ctx)] = valueSd.des(ctx);
+      }
+      return data;
     }
-  },
-  (ctx) => {
-    const length = headSd.des(ctx);
-    const data = {};
-    for (let i = 0; i < length; i++) {
-      data[keySd.des(ctx)] = valueSd.des(ctx);
-    }
-    return data;
-  }
-);
-const optional = (sd) => define(
-  (ctx, data) => {
-    if (data == void 0) {
-      ctx.view.setUint8(ctx.i++, 0);
-    } else {
-      ctx.view.setUint8(ctx.i++, 1);
-      sd.ser(ctx, data);
-    }
-  },
-  (ctx) => ctx.view.getUint8(ctx.i++) ? sd.des(ctx) : void 0
-);
+  );
+const optional = (sd) =>
+  define(
+    (ctx, data) => {
+      if (data == void 0) {
+        ctx.view.setUint8(ctx.i++, 0);
+      } else {
+        ctx.view.setUint8(ctx.i++, 1);
+        sd.ser(ctx, data);
+      }
+    },
+    (ctx) => (ctx.view.getUint8(ctx.i++) ? sd.des(ctx) : void 0)
+  );
 const usize = define(
   (ctx, data) => {
     while (true) {
@@ -446,7 +432,9 @@ const usize = define(
     }
   },
   (ctx) => {
-    let byte, res = 0, off = 0;
+    let byte,
+      res = 0,
+      off = 0;
     do {
       byte = ctx.view.getUint8(ctx.i++);
       res += (byte & 127) << off;
@@ -462,32 +450,33 @@ const size = define(
     return num & 1 ? (num + 1) / -2 : num / 2;
   }
 );
-const string = (encoding, headSd) => define(
-  (ctx, data) => {
-    const head = ctx.i;
-    headSd.ser(ctx, data.length);
-    const begin = ctx.i;
-    const headSize = begin - head;
-    encoding.encode(ctx, data);
-    const end = ctx.i;
-    const size2 = end - begin;
-    if (size2 === data.length)
-      return;
-    headSd.ser(ctx, size2);
-    const requiredHeadSize = ctx.i - end;
-    if (headSize !== requiredHeadSize) {
-      ctx.bytes.copyWithin(head + requiredHeadSize, begin, end);
-    }
-    ctx.i = head;
-    headSd.ser(ctx, size2);
-    ctx.i = end + (requiredHeadSize - headSize);
-  },
-  (ctx) => encoding.decode(ctx, headSd.des(ctx))
-);
-const rec = (sd) => define(
-  (ctx, data) => sd().ser(ctx, data),
-  (ctx) => sd().des(ctx)
-);
+const string = (encoding, headSd) =>
+  define(
+    (ctx, data) => {
+      const head = ctx.i;
+      headSd.ser(ctx, data.length);
+      const begin = ctx.i;
+      const headSize = begin - head;
+      encoding.encode(ctx, data);
+      const end = ctx.i;
+      const size2 = end - begin;
+      if (size2 === data.length) return;
+      headSd.ser(ctx, size2);
+      const requiredHeadSize = ctx.i - end;
+      if (headSize !== requiredHeadSize) {
+        ctx.bytes.copyWithin(head + requiredHeadSize, begin, end);
+      }
+      ctx.i = head;
+      headSd.ser(ctx, size2);
+      ctx.i = end + (requiredHeadSize - headSize);
+    },
+    (ctx) => encoding.decode(ctx, headSd.des(ctx))
+  );
+const rec = (sd) =>
+  define(
+    (ctx, data) => sd().ser(ctx, data),
+    (ctx) => sd().des(ctx)
+  );
 class InvalidOneOfType extends Error {
   constructor(type) {
     super(`Invalid oneOf type (${type})`);
@@ -495,9 +484,7 @@ class InvalidOneOfType extends Error {
   }
 }
 const oneOf = (headSd, typeToSerdes) => {
-  const types = Object.keys(
-    typeToSerdes
-  );
+  const types = Object.keys(typeToSerdes);
   const typeToInt = mapKeysToIndexes(types);
   const intToType = swapKeysAndValues(typeToInt);
   return define(
@@ -641,7 +628,7 @@ const mappings = {
   float32,
   float64,
   bigUint64,
-  bigInt64
+  bigInt64,
 };
 const number = (kind, bitSize) => mappings[`${kind}${bitSize}`];
 const struct = (definition) => {
@@ -662,4 +649,42 @@ const struct = (definition) => {
   );
 };
 const tuple = (...definition) => struct(definition);
-export { InvalidOneOfType, array, bigInt64, bigUint64, boolean, bytes, clazz, contextDes, contextFromBytes, contextSer, createContext, define, float32, float64, growContext, int16, int32, int8, latin1, map, msgpack, number, oneOf, optional, rec, size, string, struct, tuple, ucs2, uint16, uint32, uint8, use, usize, utf8, utf8js };
+export {
+  InvalidOneOfType,
+  array,
+  bigInt64,
+  bigUint64,
+  boolean,
+  bytes,
+  clazz,
+  contextDes,
+  contextFromBytes,
+  contextSer,
+  createContext,
+  define,
+  float32,
+  float64,
+  growContext,
+  int16,
+  int32,
+  int8,
+  latin1,
+  map,
+  msgpack,
+  number,
+  oneOf,
+  optional,
+  rec,
+  size,
+  string,
+  struct,
+  tuple,
+  ucs2,
+  uint16,
+  uint32,
+  uint8,
+  use,
+  usize,
+  utf8,
+  utf8js,
+};

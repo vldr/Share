@@ -26,7 +26,7 @@ After the build process completes, the output files will be located in the `dist
 
 ### Running
 
-**Note:** In a local development environment, you will need to have a local instance of [Relay](https://github.com/vldr/Relay) running. Additionally, you will need to change the WebSocket address in the `.env.development` file to point to the address of your local Relay instance.
+**Note:** You will need to have a local instance of [Relay](https://github.com/vldr/Relay) running. Then, you will need to create a file called `.env.development` and add the environment variable `VITE_URI=` with the address of your local Relay instance.
 
 1. Install [Node.js](https://nodejs.org/en) and [npm](https://www.npmjs.com/).
 2. Run `npm i`

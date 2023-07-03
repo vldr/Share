@@ -6,12 +6,7 @@
   "sideEffects": false,
   "exports": {
     ".": {
-      "node": "./build/node.js",
       "import": "./dist/sirdez.es.js"
-    },
-    "./eval": {
-      "node": "./build/node_eval.js",
-      "import": "./dist/sirdez.eval.es.js"
     }
   },
   "scripts": {
