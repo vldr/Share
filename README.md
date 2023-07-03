@@ -32,5 +32,3 @@ After the build process completes, the output files will be located in the `dist
 2. Run `npm i`
 3. Run `npm run dev`
 4. Press `Control + C` to stop running.
-
-After the build process completes, the output files will be located in the `dist/` directory.
