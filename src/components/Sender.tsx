@@ -76,6 +76,8 @@ const Sender: Component = () => {
 
     if (packet.progress === 100 && packet.index === files().length - 1) {
       setPage({ type: "transferFileCompleted" });
+
+      network.close();
     }
 
     file.setProgress(packet.progress);

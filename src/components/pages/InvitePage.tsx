@@ -12,12 +12,10 @@ const InvitePage: Component = () => {
 
   return (
     <div class="flex flex-col h-fit min-dvh-screen justify-center items-center px-8 text-center">
-      <div class="text-4xl max-w-lg mb-3">
-        Your file(s) are ready to send...
-      </div>
+      <div class="text-4xl max-w-lg mb-3">Your file(s) are ready to send</div>
       <div class="text-lg max-w-lg mb-6">
         Copy the link to share your file(s). Keep your <b>browser tab open</b>{" "}
-        as data will be sent in real-time rather than being uploaded to a
+        as data will be sent in real-time rather than being uploaded onto a
         server.
       </div>
 

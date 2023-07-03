@@ -1,34 +1,36 @@
-## Usage
+##
 
-Those templates dependencies are maintained via [pnpm](https://pnpm.io) via `pnpm up -Lri`.
+<p align="center">
+    <img src='logo.svg?raw=true' width='50%'>
+</p>
 
-This is the reason you see a `pnpm-lock.yaml`. That being said, any package manager will work. This file can be safely be removed once you clone a template.
+---
 
-```bash
-$ npm install # or pnpm install or yarn install
-```
+Share is a real-time, peer-to-peer file transfer platform with a focus on security. With Share, you can send files of any size, and you can have peace of mind knowing that your files will be sent using end-to-end encryption and will never be stored on any server.
 
-### Learn more on the [Solid Website](https://solidjs.com) and come chat with us on our [Discord](https://discord.com/invite/solidjs)
+## [Try it out](https://share.vldr.org/)
 
-## Available Scripts
+You can try it out by clicking the above link.
 
-In the project directory, you can run:
+## Building and Running
 
-### `npm run dev` or `npm start`
+**Note:** The following instructions assume that you are in a terminal and are using a Unix based machine (Windows Subsystem, Linux, etc).
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+### Building
 
-The page will reload if you make edits.<br>
+1. Install [Node.js](https://nodejs.org/en) and [npm](https://www.npmjs.com/).
+2. Run `npm i`
+3. Run `npm run build`
 
-### `npm run build`
+After the build process completes, the output files will be located in the `dist/` directory.
 
-Builds the app for production to the `dist` folder.<br>
-It correctly bundles Solid in production mode and optimizes the build for the best performance.
+### Running
 
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
+**Note:** In a local development environment, you will need to have a local instance of [Relay](https://github.com/vldr/Relay) running. Additionally, you will need to change the WebSocket address in the `.env.development` file to point to the address of your local Relay instance.
 
-## Deployment
+1. Install [Node.js](https://nodejs.org/en) and [npm](https://www.npmjs.com/).
+2. Run `npm i`
+3. Run `npm run dev`
+4. Press `Control + C` to stop running.
 
-You can deploy the `dist` folder to any static host provider (netlify, surge, now, etc.)
+After the build process completes, the output files will be located in the `dist/` directory.

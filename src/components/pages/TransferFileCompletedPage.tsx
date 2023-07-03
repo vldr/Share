@@ -20,7 +20,8 @@ const TransferFileCompletedPage: Component = () => {
       </svg>
       <div class="text-4xl text-white">Transfer Completed</div>
       <div class="text-xl text-white max-w-lg mt-3 mb-5 text-center">
-        The file transfer was completed successfully.
+        The file transfer has been completed successfully &mdash; you may now
+        close the browser tab.
       </div>
     </div>
   );

@@ -240,7 +240,7 @@ export class NetworkSender {
     this.joinRoomCallback();
   }
 
-  private close() {
+  public close() {
     if (this.webSocket && this.webSocket.readyState === this.webSocket.OPEN) {
       this.sendJSON({ type: "leave" });
     }
@@ -259,7 +259,7 @@ export class NetworkSender {
     const index = new Uint8Array([this.DESTINATION]);
 
     if (this.sharedKey) {
-      const iv = window.crypto.getRandomValues(new Uint8Array(12));
+      const iv = window.crypto.getRandomValues(new Uint8Array(this.IV_SIZE));
 
       try {
         const ciphertext = await window.crypto.subtle.encrypt(

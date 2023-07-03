@@ -264,7 +264,7 @@ export class NetworkReceiver {
     const index = new Uint8Array([this.DESTINATION]);
 
     if (this.sharedKey) {
-      const iv = window.crypto.getRandomValues(new Uint8Array(12));
+      const iv = window.crypto.getRandomValues(new Uint8Array(this.IV_SIZE));
 
       try {
         const ciphertext = await window.crypto.subtle.encrypt(
