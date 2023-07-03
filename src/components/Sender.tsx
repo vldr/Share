@@ -1,17 +1,7 @@
-import {
-  PageType,
-  FileType,
-  ErrorPageType,
-  LoadingPageType,
-} from "../network/Types";
-import {
-  Packet,
-  createPacket,
-  deserializePacket,
-  serializePacket,
-} from "../network/Packet";
-import { NetworkSender } from "../network/NetworkSender";
 import { Component, Match, Switch, createSignal } from "solid-js";
+import { Packet, List, IProgress } from "../network/protobuf/Packets";
+import { PageType, FileType, ErrorPageType, LoadingPageType } from "./Types";
+import { NetworkSender } from "../network/NetworkSender";
 import ErrorPage from "./pages/ErrorPage";
 import InvitePage from "./pages/InvitePage";
 import LoadingPage from "./pages/LoadingPage";
@@ -33,11 +23,11 @@ const Sender: Component = () => {
   });
 
   const onMessage = (data: Uint8Array) => {
-    const packet = deserializePacket(data);
+    const packet = Packet.decode(data);
 
-    switch (packet.type) {
-      case "Progress":
-        return onProgress(packet.value);
+    switch (packet.value) {
+      case "progress":
+        return onProgress(packet.progress!);
     }
   };
 
@@ -68,7 +58,7 @@ const Sender: Component = () => {
     setPage({ type: "error", message });
   };
 
-  const onProgress = (packet: Packet<"Progress">) => {
+  const onProgress = (packet: IProgress) => {
     const file = files().at(packet.index);
     if (!file) {
       return network.error("Expected valid progress packet index.");
@@ -118,8 +108,11 @@ const Sender: Component = () => {
 
   const onLoad = () => {
     const chunk = new Uint8Array(fileReader.result as ArrayBuffer);
-    const packet = createPacket("Chunk", { chunk });
-    const data = serializePacket(packet);
+    const packet = Packet.encode({
+      chunk: { chunk },
+    });
+
+    const data = packet.finish();
     network.send(data);
 
     sendChunk();
@@ -168,17 +161,19 @@ const Sender: Component = () => {
   };
 
   const sendList = () => {
-    const packet = createPacket("List", []);
+    const list = List.create({ entries: [] });
 
     for (const file of files()) {
-      packet.value.push({
+      list.entries.push({
         index: file.index,
         name: file.name,
         size: file.size,
       });
     }
 
-    const data = serializePacket(packet);
+    const packet = Packet.encode({ list });
+    const data = packet.finish();
+
     network.send(data);
   };
 

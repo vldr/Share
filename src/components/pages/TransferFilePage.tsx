@@ -1,5 +1,5 @@
 import { Accessor, Component, For } from "solid-js";
-import { FileType } from "../../network/Types";
+import { FileType } from "../Types";
 
 const TransferFilePage: Component<{ files: Accessor<FileType[]> }> = (
   props

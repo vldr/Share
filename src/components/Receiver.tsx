@@ -1,16 +1,6 @@
-import {
-  PageType,
-  FileType,
-  ErrorPageType,
-  LoadingPageType,
-} from "../network/Types";
-import {
-  Packet,
-  createPacket,
-  deserializePacket,
-  serializePacket,
-} from "../network/Packet";
 import { Component, Match, Switch, createSignal } from "solid-js";
+import { Packet, IChunk, IList } from "../network/protobuf/Packets";
+import { PageType, FileType, ErrorPageType, LoadingPageType } from "./Types";
 import { NetworkReceiver } from "../network/NetworkReceiver";
 import ErrorPage from "./pages/ErrorPage";
 import LoadingPage from "./pages/LoadingPage";
@@ -30,13 +20,13 @@ const Receiver: Component = () => {
   });
 
   const onMessage = (data: Uint8Array) => {
-    const packet = deserializePacket(data);
+    const packet = Packet.decode(data);
 
-    switch (packet.type) {
-      case "List":
-        return onList(packet.value);
-      case "Chunk":
-        return onChunk(packet.value);
+    switch (packet.value) {
+      case "list":
+        return onList(packet.list!);
+      case "chunk":
+        return onChunk(packet.chunk!);
     }
   };
 
@@ -52,10 +42,14 @@ const Receiver: Component = () => {
     }
   };
 
-  const onList = (packet: Packet<"List">) => {
+  const onList = (packet: IList) => {
+    if (!packet.entries) {
+      return network.error("Expected list entires to be valid.");
+    }
+
     const files: FileType[] = [];
 
-    for (const file of packet) {
+    for (const file of packet.entries) {
       const [progress, setProgress] = createSignal<number>(0);
 
       files.push({
@@ -79,14 +73,14 @@ const Receiver: Component = () => {
     setPage({ type: "transferFile" });
   };
 
-  const onChunk = (packet: Packet<"Chunk">) => {
+  const onChunk = (packet: IChunk) => {
     const file = files()[index];
     if (!file) {
       return network.error("Chunk packet does not match a given index.");
     }
 
-    buffer.push(packet.chunk);
-    length += packet.chunk.byteLength;
+    buffer.push(packet.chunk!);
+    length += packet.chunk!.byteLength;
 
     file.setProgress(((length / file.size) * 100) >> 0);
 
@@ -125,8 +119,8 @@ const Receiver: Component = () => {
   const onProgress = (file: FileType) => {
     progress = file.progress();
 
-    const packet = createPacket("Progress", { index: file.index, progress });
-    const data = serializePacket(packet);
+    const packet = Packet.encode({ progress: { index: file.index, progress } });
+    const data = packet.finish();
 
     network.send(data);
   };

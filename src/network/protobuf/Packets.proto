@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+message Handshake {
+    required bytes publicKey = 1;
+    required bytes signature = 2;
+}
+
+message HandshakeResponse {
+    required bytes publicKey = 1;
+    required bytes signature = 2;
+}
+
+message List {
+    message Entry {
+        required uint32 index = 1;
+        required uint32 size = 2;
+        required string name = 3;
+    };
+
+    repeated Entry entries = 1;
+}
+
+message Progress {
+    required uint32 index = 1;
+    required uint32 progress = 2;
+}
+
+message Chunk {
+    required bytes chunk = 1;
+}
+
+message Packet {
+    oneof value {
+        Handshake handshake = 2;
+        HandshakeResponse handshakeResponse = 3;
+        List list = 4;
+        Progress progress = 5;
+        Chunk chunk = 6;
+    }
+}

@@ -1,9 +1,4 @@
-import {
-  Packet,
-  createPacket,
-  deserializePacket,
-  serializePacket,
-} from "./Packet";
+import { IHandshakeResponse, Packet } from "./protobuf/Packets";
 
 export class NetworkSender {
   private readonly ROOM_SIZE = 2;
@@ -99,11 +94,11 @@ export class NetworkSender {
           return this.error("Failed to decrypt: " + error);
         }
       } else {
-        const packet = deserializePacket(data);
+        const packet = Packet.decode(data);
 
-        switch (packet.type) {
-          case "HandshakeResponse":
-            return this.onHandshakeResponse(packet.value);
+        switch (packet.value) {
+          case "handshakeResponse":
+            return this.onHandshakeResponse(packet.handshakeResponse!);
         }
       }
     } else {
@@ -172,13 +167,13 @@ export class NetworkSender {
       return this.error("Failed to export HMAC key: " + error);
     }
 
-    const packet = createPacket("Handshake", { publicKey, signature });
-    const data = serializePacket(packet);
+    const packet = Packet.encode({ handshake: { publicKey, signature } });
+    const data = packet.finish();
 
     this.send(data);
   }
 
-  private async onHandshakeResponse(packet: Packet<"HandshakeResponse">) {
+  private async onHandshakeResponse(packet: IHandshakeResponse) {
     if (!this.HMACKey) {
       return this.error("HMAC key is not valid.");
     }
