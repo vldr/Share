@@ -263,12 +263,24 @@ export class NetworkSender {
           data
         );
 
-        this.webSocket?.send(new Blob([index, iv, ciphertext]));
+        const merged = new Uint8Array(
+          index.byteLength + iv.byteLength + ciphertext.byteLength
+        );
+
+        merged.set(index);
+        merged.set(iv, index.length);
+        merged.set(new Uint8Array(ciphertext), iv.length + index.length);
+
+        this.webSocket?.send(merged);
       } catch (error) {
         return this.error("Failed to encrypt: " + error);
       }
     } else {
-      this.webSocket?.send(new Blob([index, data]));
+      const merged = new Uint8Array(index.byteLength + data.byteLength);
+      merged.set(index);
+      merged.set(data, index.length);
+
+      this.webSocket?.send(merged);
     }
   }
 }
