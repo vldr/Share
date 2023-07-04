@@ -12,12 +12,12 @@ import TransferFileCompletedPage from "./pages/TransferFileCompletedPage";
 const Sender: Component = () => {
   const CHUNK_SIZE = 65535;
 
+  let files: FileType[] = [];
   let index: number;
   let offset: number;
   let size: number;
   let chunkSize: number;
 
-  const [files, setFiles] = createSignal<FileType[]>([]);
   const [page, setPage] = createSignal<PageType>({
     type: "selectFile",
   });
@@ -38,7 +38,7 @@ const Sender: Component = () => {
   };
 
   const onLeaveRoom = () => {
-    for (const file of files()) {
+    for (const file of files) {
       file.setProgress(0);
     }
 
@@ -59,12 +59,12 @@ const Sender: Component = () => {
   };
 
   const onProgress = (packet: IProgress) => {
-    const file = files().at(packet.index);
+    const file = files.at(packet.index);
     if (!file) {
       return network.error("Expected valid progress packet index.");
     }
 
-    if (packet.progress === 100 && packet.index === files().length - 1) {
+    if (packet.progress === 100 && packet.index === files.length - 1) {
       setPage({ type: "transferFileCompleted" });
 
       network.close();
@@ -82,8 +82,6 @@ const Sender: Component = () => {
       return network.error("Expected file list to not be empty.");
     }
 
-    const files: FileType[] = [];
-
     for (let index = 0; index < fileList.length; index++) {
       const file = fileList[index];
       const [progress, setProgress] = createSignal<number>(0);
@@ -100,7 +98,6 @@ const Sender: Component = () => {
       });
     }
 
-    setFiles(files);
     setPage({ type: "loading", message: "Attempting to create room..." });
 
     network.init();
@@ -124,17 +121,17 @@ const Sender: Component = () => {
     }
 
     if (size === 0) {
-      if (index === files().length - 1) {
+      if (index === files.length - 1) {
         return;
       }
 
       index++;
       offset = 0;
       chunkSize = CHUNK_SIZE;
-      size = files()[index].size;
+      size = files[index].size;
     }
 
-    const file = files()[index].file;
+    const file = files[index].file;
     if (!file) {
       return network.error("File handle is invalid.");
     }
@@ -155,7 +152,7 @@ const Sender: Component = () => {
     index = 0;
     offset = 0;
     chunkSize = CHUNK_SIZE;
-    size = files()[index].size;
+    size = files[index].size;
 
     sendChunk();
   };
@@ -163,7 +160,7 @@ const Sender: Component = () => {
   const sendList = () => {
     const list = List.create({ entries: [] });
 
-    for (const file of files()) {
+    for (const file of files) {
       list.entries.push({
         index: file.index,
         name: file.name,

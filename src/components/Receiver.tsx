@@ -8,12 +8,12 @@ import TransferFilePage from "./pages/TransferFilePage";
 import TransferFileCompletedPage from "./pages/TransferFileCompletedPage";
 
 const Receiver: Component = () => {
+  let files: FileType[] = [];
   let index: number;
   let length: number;
   let progress: number;
   let buffer: Uint8Array[];
 
-  const [files, setFiles] = createSignal<FileType[]>([]);
   const [page, setPage] = createSignal<PageType>({
     type: "loading",
     message: "Attempting to connect...",
@@ -47,8 +47,6 @@ const Receiver: Component = () => {
       return network.error("Expected list entires to be valid.");
     }
 
-    const files: FileType[] = [];
-
     for (const file of packet.entries) {
       const [progress, setProgress] = createSignal<number>(0);
 
@@ -69,12 +67,11 @@ const Receiver: Component = () => {
     progress = 0;
     buffer = [];
 
-    setFiles(files);
     setPage({ type: "transferFile" });
   };
 
   const onChunk = (packet: IChunk) => {
-    const file = files()[index];
+    const file = files[index];
     if (!file) {
       return network.error("Chunk packet does not match a given index.");
     }
@@ -111,7 +108,7 @@ const Receiver: Component = () => {
     progress = 0;
     buffer = [];
 
-    if (index === files().length) {
+    if (index === files.length) {
       setPage({ type: "transferFileCompleted" });
     }
   };

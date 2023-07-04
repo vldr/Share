@@ -1,9 +1,7 @@
-import { Accessor, Component, For } from "solid-js";
+import { Component, For } from "solid-js";
 import { FileType } from "../Types";
 
-const TransferFilePage: Component<{ files: Accessor<FileType[]> }> = (
-  props
-) => {
+const TransferFilePage: Component<{ files: FileType[] }> = (props) => {
   const humanReadableFileSize = (size: number): string => {
     const i = size == 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
 
@@ -21,15 +19,12 @@ const TransferFilePage: Component<{ files: Accessor<FileType[]> }> = (
         Keep your <b>browser tab open</b> as data is sent in real-time.
       </div>
       <div class="flex flex-col gap-3 w-full items-center">
-        <For each={props.files()}>
+        <For each={props.files}>
           {(file) => (
             <div class="flex flex-col bg-[#23272c] shadow-lg rounded-md text-left p-4 w-full max-w-[500px]">
               <div class="flex flex-row">
                 <div class="mr-2">
-                  <svg
-                    class="w-12 h-12 invert"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 100 100">
+                  <svg class="w-12 h-12 invert" viewBox="0 0 100 100">
                     <path d="m79.46,22.56l-6.67-7.04-3.92-4.14c-.33-.35-.7-.62-1.1-.84-.23-.13-.48-.23-.73-.31-.07-.02-.13-.05-.2-.07h0s0,0,0,0v11.08c0,1.26.87,2.32,2.04,2.61.21.05.43.09.66.09h10.81s0,0,0,0h0c-.23-.51-.52-.99-.9-1.39Z" />
                     <path d="m27.79,10c-4.75,0-8.61,4.12-8.61,9.19v61.62c0,5.07,3.86,9.19,8.61,9.19h44.41c4.75,0,8.61-4.12,8.61-9.19V27.2h-11.26c-3.28,0-5.95-2.67-5.95-5.95v-11.25H27.79Zm4.58,17.57h17.62c.9,0,1.62.72,1.62,1.62s-.72,1.62-1.62,1.62h-17.62c-.9,0-1.62-.72-1.62-1.62s.72-1.62,1.62-1.62Zm35.24,44.86h-35.24c-.9,0-1.62-.72-1.62-1.62s.72-1.62,1.62-1.62h35.24c.9,0,1.62.72,1.62,1.62s-.72,1.62-1.62,1.62Zm0-24.05c.9,0,1.62.72,1.62,1.62s-.72,1.62-1.62,1.62h-35.24c-.9,0-1.62-.72-1.62-1.62s.72-1.62,1.62-1.62h35.24Z" />
                   </svg>

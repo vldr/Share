@@ -3,10 +3,7 @@ import { Component } from "solid-js";
 const TransferFileCompletedPage: Component = () => {
   return (
     <div class="flex flex-col h-fit min-dvh-screen justify-center items-center px-8 text-center">
-      <svg
-        class="w-28 h-28"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 100 125">
+      <svg class="w-28 h-28" viewBox="0 0 100 125">
         <g transform="translate(0,-952.36218)">
           <path
             style="opacity:1;color:#000000;fill:#3bff55;stroke:none;stroke-width:7.09253644999999990;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;
