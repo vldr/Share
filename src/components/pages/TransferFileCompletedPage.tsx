@@ -1,6 +1,16 @@
 import { Component } from "solid-js";
 
 const TransferFileCompletedPage: Component = () => {
+  const onClick = () => {
+    history.pushState(
+      "",
+      document.title,
+      window.location.pathname + window.location.search
+    );
+
+    location.reload();
+  };
+
   return (
     <div class="flex flex-col h-fit min-dvh-screen justify-center items-center px-8 text-center">
       <svg class="w-28 h-28" viewBox="0 0 100 125">
@@ -20,6 +30,12 @@ const TransferFileCompletedPage: Component = () => {
         The file transfer has been completed successfully &mdash; you may now
         close the browser tab.
       </div>
+
+      <button
+        onClick={onClick}
+        class="transition border w-fit font-bold border-[#4a4f58] py-2 px-6 rounded hover:bg-[#292e34] mr-2">
+        Return to Home
+      </button>
     </div>
   );
 };

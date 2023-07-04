@@ -40,13 +40,7 @@ const ErrorPage: Component<{ message: string }> = (props) => {
           <button
             onClick={onGoBackClick}
             class="transition border w-fit font-bold border-[#4a4f58] py-2 px-6 rounded hover:bg-[#292e34] mr-2">
-            Go Back
-          </button>
-
-          <button
-            onClick={onRetryClick}
-            class="transition w-fit font-bold border-[#4a4f58] py-2 px-4 rounded hover:bg-[#292e34]">
-            Retry
+            Return to Home
           </button>
         </Show>
       </div>
