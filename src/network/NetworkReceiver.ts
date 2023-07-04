@@ -278,7 +278,7 @@ export class NetworkReceiver {
         merged.set(iv, index.length);
         merged.set(new Uint8Array(ciphertext), iv.length + index.length);
 
-        this.webSocket?.send(merged);
+        this.webSocket.send(merged);
       } catch (error) {
         return this.error("Failed to encrypt: " + error);
       }
@@ -287,7 +287,7 @@ export class NetworkReceiver {
       merged.set(index);
       merged.set(data, index.length);
 
-      this.webSocket?.send(merged);
+      this.webSocket.send(merged);
     }
   }
 }

@@ -31,10 +31,10 @@ message Chunk {
 
 message Packet {
     oneof value {
-        Handshake handshake = 2;
-        HandshakeResponse handshakeResponse = 3;
-        List list = 4;
-        Progress progress = 5;
-        Chunk chunk = 6;
+        Handshake handshake = 1;
+        HandshakeResponse handshakeResponse = 2;
+        List list = 3;
+        Progress progress = 4;
+        Chunk chunk = 5;
     }
 }

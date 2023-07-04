@@ -76,8 +76,8 @@ const Receiver: Component = () => {
       return network.error("Chunk packet does not match a given index.");
     }
 
-    buffer.push(packet.chunk!);
-    length += packet.chunk!.byteLength;
+    buffer.push(packet.chunk);
+    length += packet.chunk.byteLength;
 
     file.setProgress(((length / file.size) * 100) >> 0);
 

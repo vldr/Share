@@ -1517,15 +1517,15 @@ export const Packet = $root.Packet = (() => {
         if (!writer)
             writer = $Writer.create();
         if (message.handshake != null && Object.hasOwnProperty.call(message, "handshake"))
-            $root.Handshake.encode(message.handshake, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+            $root.Handshake.encode(message.handshake, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
         if (message.handshakeResponse != null && Object.hasOwnProperty.call(message, "handshakeResponse"))
-            $root.HandshakeResponse.encode(message.handshakeResponse, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+            $root.HandshakeResponse.encode(message.handshakeResponse, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
         if (message.list != null && Object.hasOwnProperty.call(message, "list"))
-            $root.List.encode(message.list, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
+            $root.List.encode(message.list, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
         if (message.progress != null && Object.hasOwnProperty.call(message, "progress"))
-            $root.Progress.encode(message.progress, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
+            $root.Progress.encode(message.progress, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
         if (message.chunk != null && Object.hasOwnProperty.call(message, "chunk"))
-            $root.Chunk.encode(message.chunk, writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
+            $root.Chunk.encode(message.chunk, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
         return writer;
     };
 
@@ -1560,23 +1560,23 @@ export const Packet = $root.Packet = (() => {
         while (reader.pos < end) {
             let tag = reader.uint32();
             switch (tag >>> 3) {
-            case 2: {
+            case 1: {
                     message.handshake = $root.Handshake.decode(reader, reader.uint32());
                     break;
                 }
-            case 3: {
+            case 2: {
                     message.handshakeResponse = $root.HandshakeResponse.decode(reader, reader.uint32());
                     break;
                 }
-            case 4: {
+            case 3: {
                     message.list = $root.List.decode(reader, reader.uint32());
                     break;
                 }
-            case 5: {
+            case 4: {
                     message.progress = $root.Progress.decode(reader, reader.uint32());
                     break;
                 }
-            case 6: {
+            case 5: {
                     message.chunk = $root.Chunk.decode(reader, reader.uint32());
                     break;
                 }
