@@ -81,7 +81,7 @@ const Receiver: Component = () => {
 
     file.setProgress(((length / file.size) * 100) >> 0);
 
-    if (file.progress() === 100 || file.progress() - progress > 1) {
+    if (file.progress() === 100 || file.progress() - progress >= 1) {
       onProgress(file);
     }
 

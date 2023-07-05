@@ -10,7 +10,7 @@ import TransferFilePage from "./pages/TransferFilePage";
 import TransferFileCompletedPage from "./pages/TransferFileCompletedPage";
 
 const Sender: Component = () => {
-  const CHUNK_SIZE = 65535;
+  const MAX_CHUNK_SIZE = 65535;
 
   let files: FileType[] = [];
   let index: number;
@@ -59,7 +59,7 @@ const Sender: Component = () => {
   };
 
   const onProgress = (packet: IProgress) => {
-    const file = files.at(packet.index);
+    const file = files[packet.index];
     if (!file) {
       return network.error("Expected valid progress packet index.");
     }
@@ -127,7 +127,7 @@ const Sender: Component = () => {
 
       index++;
       offset = 0;
-      chunkSize = CHUNK_SIZE;
+      chunkSize = MAX_CHUNK_SIZE;
       size = files[index].size;
     }
 
@@ -151,24 +151,24 @@ const Sender: Component = () => {
   const sendChunks = () => {
     index = 0;
     offset = 0;
-    chunkSize = CHUNK_SIZE;
+    chunkSize = MAX_CHUNK_SIZE;
     size = files[index].size;
 
     sendChunk();
   };
 
   const sendList = () => {
-    const list = List.create({ entries: [] });
+    const entries: List.IEntry[] = [];
 
     for (const file of files) {
-      list.entries.push({
+      entries.push({
         index: file.index,
         name: file.name,
         size: file.size,
       });
     }
 
-    const packet = Packet.encode({ list });
+    const packet = Packet.encode({ list: { entries } });
     const data = packet.finish();
 
     network.send(data);
@@ -179,6 +179,7 @@ const Sender: Component = () => {
 
   const network = new NetworkSender(
     import.meta.env.VITE_URI || String(),
+
     onMessage,
     onCreateRoom,
     onLeaveRoom,
