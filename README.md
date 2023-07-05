@@ -1,5 +1,3 @@
-##
-
 <p align="center">
     <img src='logo.svg?raw=true' width='50%'>
 </p>
@@ -10,13 +8,15 @@ Share is a real-time, peer-to-peer file transfer platform with a focus on securi
 
 ## [Try it out](https://share.vldr.org/)
 
-You can try it out by clicking the above link.
+You can try Share by visiting the above link.
 
 ## Building and Running
 
-**Note:** The following instructions assume that you are in a terminal and are using a Unix based machine (Windows Subsystem, Linux, etc).
+The following instructions assume that you are in a terminal like bash, zsh, cmd, etc.
 
 ### Building
+
+**Note:** You will need to have an instance of [Relay](https://github.com/vldr/Relay) running. Then, you will need to update the environment variable `VITE_URI=` with the address of your Relay instance inside the `.env.production` file.
 
 1. Install [Node.js](https://nodejs.org/en) and [npm](https://www.npmjs.com/).
 2. Run `npm i`
@@ -26,9 +26,10 @@ After the build process completes, the output files will be located in the `dist
 
 ### Running
 
-**Note:** You will need to have a local instance of [Relay](https://github.com/vldr/Relay) running. Then, you will need to create a file called `.env.development` and add the environment variable `VITE_URI=` with the address of your local Relay instance.
+**Note:** You will need to have an instance of [Relay](https://github.com/vldr/Relay) running. Then, you will need to create a file called `.env.development` and add the environment variable `VITE_URI=` with the address of your Relay instance.
 
 1. Install [Node.js](https://nodejs.org/en) and [npm](https://www.npmjs.com/).
 2. Run `npm i`
-3. Run `npm run dev`
-4. Press `Control + C` to stop running.
+3. Run `npm run proto`
+4. Run `npm run dev`
+5. Press `Control + C` to stop running.
