@@ -46,10 +46,10 @@ const SelectFilePage: Component<{
   let dropElement: HTMLDivElement | undefined;
 
   return (
-    <div class="flex h-fit min-dvh-screen justify-center md:items-center items-start">
-      <div class="flex flex-col-reverse dvh-screen md:h-fit md:flex-row max-w-[53rem] bg-[#23272c] shadow-lg rounded-md overflow-hidden text-center">
+    <div class="flex h-fit min-dvh-screen justify-center items-center">
+      <div class="flex flex-col-reverse md:h-fit md:flex-row max-w-[53rem] bg-[#23272c] shadow-lg md:rounded-md overflow-hidden text-center">
         <div
-          class="flex flex-col items-center justify-center h-full border-2 border-dashed rounded-md border-[#64676e] px-[100px] py-[150px]"
+          class="flex flex-col items-center justify-center border-2 border-dashed rounded-md border-[#64676e] px-[100px] py-[100px] md:py-[150px]"
           ref={dropElement}
           style={highlight() ? { "border-color": "whitesmoke" } : {}}
           onDrop={onDrop}
@@ -79,7 +79,7 @@ const SelectFilePage: Component<{
           />
         </div>
         <div class="flex flex-col bg-[#101214] pb-7 w-full md:pb-0 md:w-[21rem]">
-          <div class="flex flex-row m-7 mb-6 items-center">
+          <div class="flex flex-row m-7 mb-4 items-center">
             <div class="bg-[#0060df] h-14 w-14 p-1 rounded-lg mr-5">
               <svg viewBox="0 0 36 45">
                 <path
@@ -92,7 +92,7 @@ const SelectFilePage: Component<{
                 />
               </svg>
             </div>
-            <div class="text-5xl font-bold mb-[5px] select-none text-white">
+            <div class="text-5xl font-bold h-full select-none text-white">
               Share
             </div>
           </div>
