@@ -47,11 +47,11 @@ const Sender: Component = () => {
     }
   };
 
-  const onJoinRoom = async () => {
+  const onJoinRoom = () => {
     setPage({ type: "transferFile" });
 
-    await sendList();
-    await sendChunks();
+    sendList();
+    sendChunks();
   };
 
   const onError = (message: string) => {
