@@ -142,8 +142,6 @@ const Receiver: Component = () => {
     a.download = file.name;
     a.click();
 
-    window.URL.revokeObjectURL(url);
-
     index++;
     length = 0;
     progress = 0;
