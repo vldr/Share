@@ -16,6 +16,7 @@ const Sender: Component = () => {
   let index: number;
   let offset: number;
   let size: number;
+  let sequence: number;
   let chunkSize: number;
 
   const [page, setPage] = createSignal<PageType>({
@@ -106,7 +107,7 @@ const Sender: Component = () => {
   const onLoad = () => {
     const chunk = new Uint8Array(fileReader.result as ArrayBuffer);
     const packet = Packet.encode({
-      chunk: { chunk },
+      chunk: { chunk, sequence: sequence++ },
     });
 
     const data = packet.finish();
@@ -127,6 +128,7 @@ const Sender: Component = () => {
 
       index++;
       offset = 0;
+      sequence = 0;
       chunkSize = MAX_CHUNK_SIZE;
       size = files[index].size;
     }
@@ -151,6 +153,7 @@ const Sender: Component = () => {
   const sendChunks = () => {
     index = 0;
     offset = 0;
+    sequence = 0;
     chunkSize = MAX_CHUNK_SIZE;
     size = files[index].size;
 

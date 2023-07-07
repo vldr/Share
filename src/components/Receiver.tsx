@@ -13,6 +13,9 @@ const Receiver: Component = () => {
   let length: number;
   let progress: number;
   let buffer: Uint8Array[];
+  let blob: Blob;
+  let chunks: IChunk[];
+  let sequence: number;
 
   const [page, setPage] = createSignal<PageType>({
     type: "loading",
@@ -53,7 +56,7 @@ const Receiver: Component = () => {
       files.push({
         name: file.name,
         index: file.index,
-        size: file.size,
+        size: file.size as number,
 
         progress,
         setProgress,
@@ -65,7 +68,10 @@ const Receiver: Component = () => {
     index = 0;
     length = 0;
     progress = 0;
+    sequence = 0;
     buffer = [];
+    chunks = [];
+    blob = new Blob([]);
 
     setPage({ type: "transferFile" });
   };
@@ -76,7 +82,19 @@ const Receiver: Component = () => {
       return network.error("Chunk packet does not match a given index.");
     }
 
-    buffer.push(packet.chunk);
+    if (packet.sequence !== sequence) {
+      chunks.push(packet);
+    } else {
+      buffer.push(packet.chunk);
+
+      onChunkSequence();
+    }
+
+    if (buffer.length >= 1600) {
+      blob = new Blob([blob, new Blob(buffer)]);
+      buffer = [];
+    }
+
     length += packet.chunk.byteLength;
 
     file.setProgress(((length / file.size) * 100) >> 0);
@@ -90,8 +108,31 @@ const Receiver: Component = () => {
     }
   };
 
+  const onChunkSequence = () => {
+    sequence++;
+
+    if (chunks.length > 0) {
+      chunks.sort((a, b) => b.sequence - a.sequence);
+
+      for (let i = chunks.length - 1; i >= 0; i--) {
+        const chunk = chunks[i];
+
+        if (chunk.sequence === sequence) {
+          sequence++;
+
+          buffer.push(chunk.chunk);
+          chunks.splice(i, 1);
+        } else {
+          break;
+        }
+      }
+    }
+  };
+
   const onChunkFinish = (file: FileType) => {
-    const blob = new Blob(buffer);
+    if (buffer.length > 0) {
+      blob = new Blob([blob, new Blob(buffer)]);
+    }
 
     const a = document.createElement("a");
     document.body.appendChild(a);
@@ -106,7 +147,10 @@ const Receiver: Component = () => {
     index++;
     length = 0;
     progress = 0;
+    sequence = 0;
     buffer = [];
+    chunks = [];
+    blob = new Blob([]);
 
     if (index === files.length) {
       setPage({ type: "transferFileCompleted" });

@@ -26,7 +26,8 @@ message Progress {
 }
 
 message Chunk {
-    required bytes chunk = 1;
+    required uint32 sequence = 1;
+    required bytes chunk = 2;
 }
 
 message Packet {
