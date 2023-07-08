@@ -12,7 +12,7 @@ const InvitePage: Component = () => {
     setTimeout(() => setCopied(false), 1000);
   };
 
-  QRCode.toDataURL(window.location.href).then((url) => {
+  QRCode.toDataURL(window.location.href, { width: 270 }).then((url) => {
     setQR(url);
   });
 
@@ -48,7 +48,7 @@ const InvitePage: Component = () => {
       </div>
 
       <Show when={QR()}>
-        <img class="h-[270px] rounded md:block hidden" src={QR()} />
+        <img class="rounded md:block hidden" src={QR()} />
       </Show>
     </div>
   );
