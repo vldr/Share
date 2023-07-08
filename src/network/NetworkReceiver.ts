@@ -253,7 +253,7 @@ export class NetworkReceiver {
     this.send(data);
   }
 
-  private async sendJSON(data: any) {
+  private sendJSON(data: any) {
     this.webSocket.send(JSON.stringify(data));
   }
 

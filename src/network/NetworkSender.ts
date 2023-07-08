@@ -246,7 +246,7 @@ export class NetworkSender {
     this.errorCallback(message);
   }
 
-  private async sendJSON(data: any) {
+  private sendJSON(data: any) {
     this.webSocket?.send(JSON.stringify(data));
   }
 

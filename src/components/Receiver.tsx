@@ -8,6 +8,8 @@ import TransferFilePage from "./pages/TransferFilePage";
 import TransferFileCompletedPage from "./pages/TransferFileCompletedPage";
 
 const Receiver: Component = () => {
+  const MAX_CHUNKS = 1600;
+
   let files: FileType[] = [];
   let index: number;
   let length: number;
@@ -90,7 +92,7 @@ const Receiver: Component = () => {
       onChunkSequence();
     }
 
-    if (buffer.length >= 1600) {
+    if (buffer.length >= MAX_CHUNKS) {
       blob = new Blob([blob, new Blob(buffer)]);
       buffer = [];
     }
