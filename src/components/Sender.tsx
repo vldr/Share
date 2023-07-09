@@ -79,12 +79,12 @@ const Sender: Component = () => {
       return;
     }
 
-    if (fileList.length === 0) {
-      return network.error("Expected file list to not be empty.");
-    }
-
     for (let index = 0; index < fileList.length; index++) {
       const file = fileList[index];
+      if (file.size === 0) {
+        continue;
+      }
+
       const [progress, setProgress] = createSignal<number>(0);
 
       files.push({
@@ -97,6 +97,10 @@ const Sender: Component = () => {
         name: file.name,
         size: file.size,
       });
+    }
+
+    if (files.length === 0) {
+      return;
     }
 
     setPage({ type: "loading", message: "Attempting to create room..." });

@@ -1,4 +1,4 @@
-import { Component, createSignal } from "solid-js";
+import { Component, createSignal, onCleanup, onMount } from "solid-js";
 
 const SelectFilePage: Component<{
   selectFiles: (fileList: FileList) => void;
@@ -13,13 +13,50 @@ const SelectFilePage: Component<{
     }
   };
 
+  const onDataTransfer = (items: DataTransferItemList) => {
+    const files: File[] = [];
+
+    for (const item of items) {
+      if (item.webkitGetAsEntry && item.webkitGetAsEntry()?.isDirectory) {
+        continue;
+      }
+
+      const file = item.getAsFile();
+      if (file) {
+        files.push(file);
+      }
+    }
+
+    if (files.length === 0) {
+      setHighlight(false);
+    }
+
+    props.selectFiles(files as unknown as FileList);
+  };
+
+  const onPaste = (event: ClipboardEvent) => {
+    if (event.clipboardData) {
+      const text = event.clipboardData.getData("text");
+
+      if (text) {
+        const files = [
+          new File([text], "paste.txt", {
+            type: "text/plain",
+          }),
+        ];
+
+        props.selectFiles(files as unknown as FileList);
+      } else {
+        onDataTransfer(event.clipboardData.items);
+      }
+    }
+  };
+
   const onDrop = (event: DragEvent) => {
     event.preventDefault();
 
     if (event.dataTransfer) {
-      if (event.dataTransfer.files && event.dataTransfer.files.length > 0) {
-        props.selectFiles(event.dataTransfer.files);
-      }
+      onDataTransfer(event.dataTransfer.items);
     }
   };
 
@@ -41,6 +78,14 @@ const SelectFilePage: Component<{
   const onClick = () => {
     inputElement?.click();
   };
+
+  onMount(() => {
+    document.addEventListener("paste", onPaste);
+  });
+
+  onCleanup(() => {
+    document.removeEventListener("paste", onPaste);
+  });
 
   let inputElement: HTMLInputElement | undefined;
   let dropElement: HTMLDivElement | undefined;
