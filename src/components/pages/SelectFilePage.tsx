@@ -92,9 +92,9 @@ const SelectFilePage: Component<{
 
   return (
     <div class="flex h-fit min-dvh-screen justify-center items-center">
-      <div class="flex flex-col-reverse md:h-fit md:flex-row max-w-[53rem] bg-[#23272c] shadow-lg md:rounded-md overflow-hidden text-center">
+      <div class="flex flex-col-reverse md:h-fit md:flex-row max-w-[53rem] bg-[#23272c] shadow-lg md:rounded-md overflow-hidden text-center md:mx-0 mx-4 md:mb-0 mb-6">
         <div
-          class="flex flex-col items-center justify-center border-2 border-dashed rounded-md border-[#64676e] px-[100px] py-[100px] md:py-[150px]"
+          class="flex flex-col items-center justify-center border-2 border-dashed rounded-md border-[#64676e] md:px-[100px] py-[100px] md:py-[150px]"
           ref={dropElement}
           style={highlight() ? { "border-color": "whitesmoke" } : {}}
           onDrop={onDrop}
@@ -123,8 +123,8 @@ const SelectFilePage: Component<{
             type="file"
           />
         </div>
-        <div class="flex flex-col md:bg-[#101214] bg-[#1a1d21] md:border-none border-dashed border-t-2 border-[#3b3b3c] pb-7 w-full md:pb-0 md:w-[21rem]">
-          <div class="flex flex-row m-7 mb-4 items-center">
+        <div class="flex flex-col md:bg-[#101214] bg-[#1a1d21] border-[#3b3b3c] pb-7 w-full md:pb-0 md:w-[21rem]">
+          <div class="flex flex-row md:m-7 mb-4 items-center justify-center md:justify-normal">
             <div class="bg-[#0060df] h-14 w-14 p-1 rounded-lg mr-5">
               <svg viewBox="0 0 36 45">
                 <path
@@ -141,7 +141,7 @@ const SelectFilePage: Component<{
               Share
             </div>
           </div>
-          <div class="mx-7 text-gray-300 text-justify">
+          <div class="md:mx-7 text-gray-300 md:text-justify text-center">
             Share is a real-time, peer-to-peer file transfer platform with a
             focus on security. With Share, you can send files of any size, and
             you can have peace of mind knowing that your files will be sent
