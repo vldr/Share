@@ -124,7 +124,7 @@ const SelectFilePage: Component<{
           />
         </div>
         <div class="flex flex-col md:bg-[#101214] bg-[#1a1d21] border-[#3b3b3c] pb-7 w-full md:pb-0 md:w-[21rem]">
-          <div class="flex flex-row md:m-7 mb-4 items-center justify-center md:justify-normal">
+          <div class="flex flex-row md:m-7 md:mb-4 mb-4 items-center justify-center md:justify-normal">
             <div class="bg-[#0060df] h-14 w-14 p-1 rounded-lg mr-5">
               <svg viewBox="0 0 36 45">
                 <path
