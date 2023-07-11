@@ -1,4 +1,4 @@
-import { IHandshakeResponse, Packet } from "./protobuf/Packets";
+import { IHandshakeResponsePacket, Packet } from "./protobuf/Packets";
 
 export class NetworkSender {
   private readonly ROOM_SIZE = 2;
@@ -173,7 +173,7 @@ export class NetworkSender {
     this.send(data);
   }
 
-  private async onHandshakeResponse(packet: IHandshakeResponse) {
+  private async onHandshakeResponse(packet: IHandshakeResponsePacket) {
     if (!this.HMACKey) {
       return this.error("HMAC key is not valid.");
     }

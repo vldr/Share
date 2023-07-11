@@ -1,4 +1,4 @@
-import { IHandshake, Packet } from "./protobuf/Packets";
+import { IHandshakePacket, Packet } from "./protobuf/Packets";
 
 export class NetworkReceiver {
   private readonly IV_SIZE = 12;
@@ -145,7 +145,7 @@ export class NetworkReceiver {
     this.leaveRoomCallback();
   }
 
-  private async onHandshake(packet: IHandshake) {
+  private async onHandshake(packet: IHandshakePacket) {
     if (!this.HMACKey) {
       return this.error("HMAC key is not valid.");
     }

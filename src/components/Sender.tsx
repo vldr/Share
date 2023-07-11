@@ -1,5 +1,9 @@
 import { Component, Match, Switch, createSignal } from "solid-js";
-import { Packet, List, IProgress } from "../network/protobuf/Packets";
+import {
+  Packet,
+  ListPacket,
+  IProgressPacket,
+} from "../network/protobuf/Packets";
 import { PageType, FileType, ErrorPageType, LoadingPageType } from "./Types";
 import { NetworkSender } from "../network/NetworkSender";
 import ErrorPage from "./pages/ErrorPage";
@@ -59,7 +63,7 @@ const Sender: Component = () => {
     setPage({ type: "error", message });
   };
 
-  const onProgress = (packet: IProgress) => {
+  const onProgress = (packet: IProgressPacket) => {
     const file = files[packet.index];
     if (!file) {
       return network.error("Expected valid progress packet index.");
@@ -165,7 +169,7 @@ const Sender: Component = () => {
   };
 
   const sendList = () => {
-    const entries: List.IEntry[] = [];
+    const entries: ListPacket.IEntry[] = [];
 
     for (const file of files) {
       entries.push({

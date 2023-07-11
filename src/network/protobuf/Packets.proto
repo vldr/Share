@@ -1,16 +1,16 @@
 syntax = "proto2";
 
-message Handshake {
+message HandshakePacket {
     required bytes publicKey = 1;
     required bytes signature = 2;
 }
 
-message HandshakeResponse {
+message HandshakeResponsePacket {
     required bytes publicKey = 1;
     required bytes signature = 2;
 }
 
-message List {
+message ListPacket {
     message Entry {
         required uint32 index = 1;
         required uint64 size = 2;
@@ -20,22 +20,22 @@ message List {
     repeated Entry entries = 1;
 }
 
-message Progress {
+message ProgressPacket {
     required uint32 index = 1;
     required uint32 progress = 2;
 }
 
-message Chunk {
+message ChunkPacket {
     required uint32 sequence = 1;
     required bytes chunk = 2;
 }
 
 message Packet {
     oneof value {
-        Handshake handshake = 1;
-        HandshakeResponse handshakeResponse = 2;
-        List list = 3;
-        Progress progress = 4;
-        Chunk chunk = 5;
+        HandshakePacket handshake = 1;
+        HandshakeResponsePacket handshakeResponse = 2;
+        ListPacket list = 3;
+        ProgressPacket progress = 4;
+        ChunkPacket chunk = 5;
     }
 }

@@ -1,5 +1,5 @@
 import { Component, Match, Switch, createSignal } from "solid-js";
-import { Packet, IChunk, IList } from "../network/protobuf/Packets";
+import { Packet, IChunkPacket, IListPacket } from "../network/protobuf/Packets";
 import { PageType, FileType, ErrorPageType, LoadingPageType } from "./Types";
 import { NetworkReceiver } from "../network/NetworkReceiver";
 import ErrorPage from "./pages/ErrorPage";
@@ -16,7 +16,7 @@ const Receiver: Component = () => {
   let progress: number;
   let buffer: Uint8Array[];
   let blob: Blob;
-  let chunks: IChunk[];
+  let chunks: IChunkPacket[];
   let sequence: number;
 
   const [page, setPage] = createSignal<PageType>({
@@ -47,7 +47,7 @@ const Receiver: Component = () => {
     }
   };
 
-  const onList = (packet: IList) => {
+  const onList = (packet: IListPacket) => {
     if (!packet.entries) {
       return network.error("Expected list entires to be valid.");
     }
@@ -78,7 +78,7 @@ const Receiver: Component = () => {
     setPage({ type: "transferFile" });
   };
 
-  const onChunk = (packet: IChunk) => {
+  const onChunk = (packet: IChunkPacket) => {
     const file = files[index];
     if (!file) {
       return network.error("Chunk packet does not match a given index.");
