@@ -92,7 +92,7 @@ const SelectFilePage: Component<{
 
   return (
     <div class="flex h-fit min-dvh-screen justify-center items-center">
-      <div class="flex flex-col-reverse bg-[#23272c] max-w-[27rem] overflow-hidden text-center mx-4 mb-6">
+      <div class="flex flex-col-reverse bg-[#23272c] max-w-[26.5rem] overflow-hidden text-center mx-4 mb-6">
         <div
           class="flex flex-col items-center justify-center border-2 border-dashed rounded-md border-[#64676e] py-[85px] pb-[95px]"
           ref={dropElement}
@@ -142,10 +142,9 @@ const SelectFilePage: Component<{
             </div>
           </div>
           <div class="text-gray-300 text-justify">
-            Share is a real-time, peer-to-peer file transfer platform with a
-            focus on security. With Share, you can send files of any size, and
-            you can have peace of mind knowing that your files will be sent
-            using end-to-end encryption and will never be stored on any server.
+            Share is an end-to-end encrypted, peer-to-peer file transfer
+            platform allowing you to send files of any size just by sharing a
+            link.
           </div>
         </div>
       </div>
