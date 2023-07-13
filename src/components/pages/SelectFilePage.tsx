@@ -92,9 +92,9 @@ const SelectFilePage: Component<{
 
   return (
     <div class="flex h-fit min-dvh-screen justify-center items-center">
-      <div class="flex flex-col-reverse bg-[#23272c] max-w-[30rem] overflow-hidden text-center mx-4 mb-6">
+      <div class="flex flex-col-reverse bg-[#23272c] max-w-[27rem] overflow-hidden text-center mx-4 mb-6">
         <div
-          class="flex flex-col items-center justify-center border-2 border-dashed rounded-md border-[#64676e]  py-[100px]"
+          class="flex flex-col items-center justify-center border-2 border-dashed rounded-md border-[#64676e] py-[85px]"
           ref={dropElement}
           style={highlight() ? { "border-color": "whitesmoke" } : {}}
           onDrop={onDrop}
