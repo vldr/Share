@@ -89,7 +89,7 @@ const Receiver: Component = () => {
     } else {
       buffer.push(packet.chunk);
 
-      onChunkSequence();
+      onChunkReorder();
     }
 
     if (buffer.length >= MAX_CHUNKS) {
@@ -110,7 +110,7 @@ const Receiver: Component = () => {
     }
   };
 
-  const onChunkSequence = () => {
+  const onChunkReorder = () => {
     sequence++;
 
     if (chunks.length > 0) {

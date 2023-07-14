@@ -111,7 +111,7 @@ const SelectFilePage: Component<{
 
           <button
             onClick={onClick}
-            class="transition w-fit font-bold bg-[#0060df] py-3 px-6 rounded hover:bg-[#2e75d1] mb-2">
+            class="transition w-fit font-bold bg-[#0060df] py-3 px-6 rounded hover:bg-[#2e75d1] mb-1">
             Select files to share
           </button>
 
@@ -123,8 +123,8 @@ const SelectFilePage: Component<{
             type="file"
           />
         </div>
-        <div class="flex flex-col  bg-[#1a1d21] border-[#3b3b3c] pb-7 w-full ">
-          <div class="flex flex-row  mb-4 items-center justify-center">
+        <div class="flex flex-col  bg-[#1a1d21] border-[#3b3b3c] pb-5 w-full">
+          <div class="flex flex-row mb-3 items-center justify-center">
             <div class="bg-[#0060df] h-14 w-14 p-1 rounded-lg mr-5">
               <svg viewBox="0 0 36 45">
                 <path
@@ -141,7 +141,7 @@ const SelectFilePage: Component<{
               Share
             </div>
           </div>
-          <div class="text-gray-300 text-lg text-justify">
+          <div class="text-white text-justify">
             Share is an end-to-end encrypted, peer-to-peer file transfer
             platform allowing you to send files of any size just by sharing a
             link.
