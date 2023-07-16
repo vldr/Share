@@ -12,6 +12,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/qrcode": "^1.5.1",
+    "@types/streamsaver": "^2.0.1",
     "autoprefixer": "^10.4.14",
     "postcss": "^8.4.24",
     "protobufjs-cli": "^1.1.1",
@@ -24,6 +25,7 @@
   "dependencies": {
     "protobufjs": "^7.2.4",
     "qrcode": "^1.5.3",
-    "solid-js": "^1.7.6"
+    "solid-js": "^1.7.6",
+    "streamsaver": "^2.0.6"
   }
 }

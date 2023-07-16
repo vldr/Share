@@ -1,40 +1,40 @@
 import { Accessor, Setter } from "solid-js";
 
-export type ErrorPageType = {
+export type ErrorState = {
   type: "error";
   message: string;
 };
 
-export type LoadingPageType = {
+export type LoadingState = {
   type: "loading";
   message: string;
 };
 
-export type SelectFilePageType = {
+export type SelectFileState = {
   type: "selectFile";
 };
 
-export type InvitePageType = {
+export type InviteState = {
   type: "invite";
 };
 
-export type TransferFilePageType = {
+export type TransferFileState = {
   type: "transferFile";
 };
 
-export type TransferCompletedFilePageType = {
+export type TransferCompletedFileState = {
   type: "transferFileCompleted";
 };
 
-export type PageType =
-  | ErrorPageType
-  | LoadingPageType
-  | SelectFilePageType
-  | InvitePageType
-  | TransferFilePageType
-  | TransferCompletedFilePageType;
+export type State =
+  | ErrorState
+  | LoadingState
+  | SelectFileState
+  | InviteState
+  | TransferFileState
+  | TransferCompletedFileState;
 
-export type FileType = {
+export type SendFile = {
   index: number;
   name: string;
   size: number;
@@ -42,5 +42,16 @@ export type FileType = {
   setProgress: Setter<number>;
   progress: Accessor<number>;
 
-  file: File | undefined;
+  file: File;
+};
+
+export type ReceiveFile = {
+  index: number;
+  name: string;
+  size: number;
+
+  setProgress: Setter<number>;
+  progress: Accessor<number>;
+
+  writer: WritableStreamDefaultWriter<Uint8Array>;
 };

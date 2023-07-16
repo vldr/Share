@@ -1,25 +1,22 @@
 import { Component, Match, Switch, createSignal } from "solid-js";
 import { Packet, IChunkPacket, IListPacket } from "../network/protobuf/Packets";
-import { PageType, FileType, ErrorPageType, LoadingPageType } from "./Types";
+import { State, ReceiveFile, ErrorState, LoadingState } from "./Types";
 import { NetworkReceiver } from "../network/NetworkReceiver";
+import StreamSaver from "streamsaver";
 import ErrorPage from "./pages/ErrorPage";
 import LoadingPage from "./pages/LoadingPage";
 import TransferFilePage from "./pages/TransferFilePage";
 import TransferFileCompletedPage from "./pages/TransferFileCompletedPage";
 
 const Receiver: Component = () => {
-  const MAX_CHUNKS = 1600;
-
-  let files: FileType[] = [];
+  let files: ReceiveFile[] = [];
   let index: number;
   let length: number;
   let progress: number;
-  let buffer: Uint8Array[];
-  let blob: Blob;
-  let chunks: IChunkPacket[];
   let sequence: number;
+  let chunks: IChunkPacket[];
 
-  const [page, setPage] = createSignal<PageType>({
+  const [state, setState] = createSignal<State>({
     type: "loading",
     message: "Attempting to connect...",
   });
@@ -36,46 +33,51 @@ const Receiver: Component = () => {
   };
 
   const onError = (message: string) => {
-    setPage({ type: "error", message });
+    setState({ type: "error", message });
   };
 
   const onLeaveRoom = () => {
-    if (page().type !== "transferFileCompleted") {
+    if (state().type !== "transferFileCompleted") {
       return network.error(
         "File transfer was interrupted because the sender left."
       );
     }
   };
 
-  const onList = (packet: IListPacket) => {
+  const onList = async (packet: IListPacket) => {
     if (!packet.entries) {
       return network.error("Expected list entires to be valid.");
     }
 
+    StreamSaver.mitm = "mitm.html";
+
     for (const file of packet.entries) {
       const [progress, setProgress] = createSignal<number>(0);
+
+      const fileStream = StreamSaver.createWriteStream(file.name, {
+        size: file.size as number,
+      });
+
+      const writer = fileStream.getWriter();
 
       files.push({
         name: file.name,
         index: file.index,
         size: file.size as number,
+        writer,
 
         progress,
         setProgress,
-
-        file: undefined,
       });
     }
 
+    chunks = [];
     index = 0;
     length = 0;
     progress = 0;
     sequence = 0;
-    buffer = [];
-    chunks = [];
-    blob = new Blob([]);
 
-    setPage({ type: "transferFile" });
+    setState({ type: "transferFile" });
   };
 
   const onChunk = (packet: IChunkPacket) => {
@@ -87,14 +89,11 @@ const Receiver: Component = () => {
     if (packet.sequence !== sequence) {
       chunks.push(packet);
     } else {
-      buffer.push(packet.chunk);
+      file.writer
+        .write(packet.chunk)
+        .catch(() => network.error("File transfer cancelled."));
 
-      onChunkReorder();
-    }
-
-    if (buffer.length >= MAX_CHUNKS) {
-      blob = new Blob([blob, new Blob(buffer)]);
-      buffer = [];
+      onChunkReorder(file);
     }
 
     length += packet.chunk.byteLength;
@@ -110,7 +109,7 @@ const Receiver: Component = () => {
     }
   };
 
-  const onChunkReorder = () => {
+  const onChunkReorder = (file: ReceiveFile) => {
     sequence++;
 
     if (chunks.length > 0) {
@@ -122,7 +121,10 @@ const Receiver: Component = () => {
         if (chunk.sequence === sequence) {
           sequence++;
 
-          buffer.push(chunk.chunk);
+          file.writer
+            .write(chunk.chunk)
+            .catch(() => network.error("File transfer cancelled."));
+
           chunks.splice(i, 1);
         } else {
           break;
@@ -131,33 +133,21 @@ const Receiver: Component = () => {
     }
   };
 
-  const onChunkFinish = (file: FileType) => {
-    if (buffer.length > 0) {
-      blob = new Blob([blob, new Blob(buffer)]);
-    }
-
-    const a = document.createElement("a");
-    document.body.appendChild(a);
-
-    const url = window.URL.createObjectURL(blob);
-    a.href = url;
-    a.download = file.name;
-    a.click();
+  const onChunkFinish = (file: ReceiveFile) => {
+    file.writer.close();
 
     index++;
     length = 0;
     progress = 0;
     sequence = 0;
-    buffer = [];
     chunks = [];
-    blob = new Blob([]);
 
     if (index === files.length) {
-      setPage({ type: "transferFileCompleted" });
+      setState({ type: "transferFileCompleted" });
     }
   };
 
-  const onProgress = (file: FileType) => {
+  const onProgress = (file: ReceiveFile) => {
     progress = file.progress();
 
     const packet = Packet.encode({ progress: { index: file.index, progress } });
@@ -177,16 +167,16 @@ const Receiver: Component = () => {
 
   return (
     <Switch>
-      <Match when={page().type === "error"}>
-        <ErrorPage message={(page() as ErrorPageType).message} />
+      <Match when={state().type === "error"}>
+        <ErrorPage message={(state() as ErrorState).message} />
       </Match>
-      <Match when={page().type === "loading"}>
-        <LoadingPage message={(page() as LoadingPageType).message} />
+      <Match when={state().type === "loading"}>
+        <LoadingPage message={(state() as LoadingState).message} />
       </Match>
-      <Match when={page().type === "transferFile"}>
+      <Match when={state().type === "transferFile"}>
         <TransferFilePage files={files} />
       </Match>
-      <Match when={page().type === "transferFileCompleted"}>
+      <Match when={state().type === "transferFileCompleted"}>
         <TransferFileCompletedPage />
       </Match>
     </Switch>

@@ -1,10 +1,10 @@
-import { Component, Match, Switch, createSignal } from "solid-js";
 import {
   Packet,
   ListPacket,
   IProgressPacket,
 } from "../network/protobuf/Packets";
-import { PageType, FileType, ErrorPageType, LoadingPageType } from "./Types";
+import { State, SendFile, ErrorState, LoadingState } from "./Types";
+import { Component, Match, Switch, createSignal } from "solid-js";
 import { NetworkSender } from "../network/NetworkSender";
 import ErrorPage from "./pages/ErrorPage";
 import InvitePage from "./pages/InvitePage";
@@ -16,14 +16,14 @@ import TransferFileCompletedPage from "./pages/TransferFileCompletedPage";
 const Sender: Component = () => {
   const MAX_CHUNK_SIZE = 65535;
 
-  let files: FileType[] = [];
+  let files: SendFile[] = [];
   let index: number;
   let offset: number;
   let size: number;
   let sequence: number;
   let chunkSize: number;
 
-  const [page, setPage] = createSignal<PageType>({
+  const [state, setState] = createSignal<State>({
     type: "selectFile",
   });
 
@@ -39,7 +39,7 @@ const Sender: Component = () => {
   const onCreateRoom = (inviteCode: string) => {
     location.hash = inviteCode;
 
-    setPage({ type: "invite" });
+    setState({ type: "invite" });
   };
 
   const onLeaveRoom = () => {
@@ -47,20 +47,20 @@ const Sender: Component = () => {
       file.setProgress(0);
     }
 
-    if (page().type === "transferFile") {
-      setPage({ type: "invite" });
+    if (state().type === "transferFile") {
+      setState({ type: "invite" });
     }
   };
 
   const onJoinRoom = () => {
-    setPage({ type: "transferFile" });
+    setState({ type: "transferFile" });
 
     sendList();
     sendChunks();
   };
 
   const onError = (message: string) => {
-    setPage({ type: "error", message });
+    setState({ type: "error", message });
   };
 
   const onProgress = (packet: IProgressPacket) => {
@@ -70,7 +70,7 @@ const Sender: Component = () => {
     }
 
     if (packet.progress === 100 && packet.index === files.length - 1) {
-      setPage({ type: "transferFileCompleted" });
+      setState({ type: "transferFileCompleted" });
 
       network.close();
     }
@@ -79,7 +79,7 @@ const Sender: Component = () => {
   };
 
   const onSelectFiles = (fileList: FileList) => {
-    if (page().type !== "selectFile") {
+    if (state().type !== "selectFile") {
       return;
     }
 
@@ -107,7 +107,7 @@ const Sender: Component = () => {
       return;
     }
 
-    setPage({ type: "loading", message: "Attempting to create room..." });
+    setState({ type: "loading", message: "Attempting to create room..." });
 
     network.init();
   };
@@ -125,7 +125,7 @@ const Sender: Component = () => {
   };
 
   const sendChunk = () => {
-    if (page().type !== "transferFile") {
+    if (state().type !== "transferFile") {
       return;
     }
 
@@ -200,22 +200,22 @@ const Sender: Component = () => {
 
   return (
     <Switch>
-      <Match when={page().type === "error"}>
-        <ErrorPage message={(page() as ErrorPageType).message} />
+      <Match when={state().type === "error"}>
+        <ErrorPage message={(state() as ErrorState).message} />
       </Match>
-      <Match when={page().type === "loading"}>
-        <LoadingPage message={(page() as LoadingPageType).message} />
+      <Match when={state().type === "loading"}>
+        <LoadingPage message={(state() as LoadingState).message} />
       </Match>
-      <Match when={page().type === "invite"}>
+      <Match when={state().type === "invite"}>
         <InvitePage />
       </Match>
-      <Match when={page().type === "selectFile"}>
+      <Match when={state().type === "selectFile"}>
         <SelectFilePage selectFiles={onSelectFiles} />
       </Match>
-      <Match when={page().type === "transferFile"}>
+      <Match when={state().type === "transferFile"}>
         <TransferFilePage files={files} />
       </Match>
-      <Match when={page().type === "transferFileCompleted"}>
+      <Match when={state().type === "transferFileCompleted"}>
         <TransferFileCompletedPage />
       </Match>
     </Switch>

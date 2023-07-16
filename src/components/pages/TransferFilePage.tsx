@@ -1,7 +1,9 @@
 import { Component, For } from "solid-js";
-import { FileType } from "../Types";
+import { SendFile, ReceiveFile } from "../Types";
 
-const TransferFilePage: Component<{ files: FileType[] }> = (props) => {
+const TransferFilePage: Component<{ files: (SendFile | ReceiveFile)[] }> = (
+  props
+) => {
   const humanReadableFileSize = (size: number): string => {
     const i = size == 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
 
