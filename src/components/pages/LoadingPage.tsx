@@ -4,7 +4,7 @@ const LoadingPage: Component<{ message: string }> = (props) => {
   return (
     <div class="flex flex-col h-fit min-dvh-screen justify-center items-center px-8">
       <svg
-        class="w-16 h-16 text-[#0f1013] animate-spin mb-7 dark:text-gray-600 fill-[#fff]"
+        class="w-16 h-16 text-[#0f1013] animate-spin mb-5 dark:text-gray-600 fill-[#fff]"
         viewBox="0 0 100 101"
         fill="none">
         <path

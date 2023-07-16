@@ -17,7 +17,7 @@ const InvitePage: Component = () => {
   });
 
   return (
-    <div class="flex flex-row h-fit min-dvh-screen justify-center items-center px-8 gap-8">
+    <div class="flex flex-row h-fit min-dvh-screen justify-center items-center px-8 pb-4 gap-8">
       <div class="flex flex-col text-center">
         <div
           class="text-4xl max-w-lg mb-1"
