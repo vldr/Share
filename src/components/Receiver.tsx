@@ -2,11 +2,13 @@ import { Component, Match, Switch, createSignal } from "solid-js";
 import { Packet, IChunkPacket, IListPacket } from "../network/protobuf/Packets";
 import { State, ReceiveFile, ErrorState, LoadingState } from "./Types";
 import { NetworkReceiver } from "../network/NetworkReceiver";
-import StreamSaver from "streamsaver";
 import ErrorPage from "./pages/ErrorPage";
 import LoadingPage from "./pages/LoadingPage";
 import TransferFilePage from "./pages/TransferFilePage";
 import TransferFileCompletedPage from "./pages/TransferFileCompletedPage";
+
+import StreamSaver from "streamsaver";
+StreamSaver.mitm = "mitm.html";
 
 const Receiver: Component = () => {
   let files: ReceiveFile[] = [];
@@ -34,6 +36,8 @@ const Receiver: Component = () => {
 
   const onError = (message: string) => {
     setState({ type: "error", message });
+
+    onUnload();
   };
 
   const onLeaveRoom = () => {
@@ -48,8 +52,6 @@ const Receiver: Component = () => {
     if (!packet.entries) {
       return network.error("Expected list entires to be valid.");
     }
-
-    StreamSaver.mitm = "mitm.html";
 
     for (const file of packet.entries) {
       const [progress, setProgress] = createSignal<number>(0);
@@ -156,6 +158,12 @@ const Receiver: Component = () => {
     network.send(data);
   };
 
+  const onUnload = () => {
+    for (const file of files) {
+      file.writer.abort();
+    }
+  };
+
   const network = new NetworkReceiver(
     import.meta.env.VITE_URI || String(),
     location.hash.replace("#", ""),
@@ -164,6 +172,8 @@ const Receiver: Component = () => {
     onError,
     onLeaveRoom
   );
+
+  window.onunload = onUnload;
 
   return (
     <Switch>
