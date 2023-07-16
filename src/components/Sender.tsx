@@ -1,8 +1,4 @@
-import {
-  Packet,
-  ListPacket,
-  IProgressPacket,
-} from "../network/protobuf/Packets";
+import { Packet, IProgressPacket } from "../network/protobuf/Packets";
 import { State, SendFile, ErrorState, LoadingState } from "./Types";
 import { Component, Match, Switch, createSignal } from "solid-js";
 import { NetworkSender } from "../network/NetworkSender";
@@ -169,7 +165,7 @@ const Sender: Component = () => {
   };
 
   const sendList = () => {
-    const entries: ListPacket.IEntry[] = [];
+    const entries = [];
 
     for (const file of files) {
       entries.push({
