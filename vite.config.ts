@@ -11,7 +11,7 @@ export default defineConfig({
   server: {
     port: 3000,
   },
-  publicDir: "src/public",
+  publicDir: "src/assets",
   build: {
     target: "esnext",
   },
