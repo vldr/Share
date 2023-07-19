@@ -4,7 +4,7 @@
 
 ---
 
-Share is a real-time, peer-to-peer file transfer platform with a focus on security. With Share, you can send files of any size, and you can have peace of mind knowing that your files will be sent using end-to-end encryption and will never be stored on any server.
+Share is an end-to-end encrypted, peer-to-peer file transfer platform allowing you to send files of any size just by sharing a link.
 
 ## [Try it out](https://share.vldr.org/)
 

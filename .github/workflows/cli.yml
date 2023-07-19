@@ -1,0 +1,47 @@
+name: Build and Publish
+
+on:
+  push:
+    branches: ["master"]
+    tags:
+      - '*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-publish:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-20.04
+            artifact_name: share-cli
+            asset_name: share-cli-linux-amd64
+          - os: windows-latest
+            artifact_name: share-cli.exe
+            asset_name: share-cli-windows-amd64.exe
+          - os: macos-latest
+            artifact_name: share-cli
+            asset_name: share-cli-macos-amd64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Rust
+        uses: ATiltedTree/setup-rust@v1
+        with:
+          rust-version: stable
+        
+      - name: Build
+        run: cargo build --release
+      
+      - name: Publish
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: target/release/${{ matrix.artifact_name }}
+          asset_name: ${{ matrix.asset_name }}
+          tag: cli
+          overwrite: true
