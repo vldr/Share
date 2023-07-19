@@ -1,0 +1,31 @@
+[package]
+name = "share-cli"
+version = "0.1.0"
+edition = "2021"
+build = "cli/build.rs"
+
+[[bin]]
+name="share-cli"
+path = "cli/main.rs"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0" }
+futures-util = "0.3"
+futures-channel = "0.3"
+tungstenite = "0.19.0"
+tokio = { version = "1.28.1", features = ["full"] }
+tokio-tungstenite = { version = "0.19.0" }
+prost = "0.11.9"
+prost-types = "0.11.9"
+base64 = "0.21.2"
+url = "2.4.0"
+p256 = { version = "0.13.2", features = ["ecdh"] }
+hmac = "0.12.1"
+sha2 = "0.10.7"
+rand = { version = "0.8.5", features = ["getrandom"] }
+aes-gcm = "0.10.2"
+sanitize-filename = "0.4.0"
+
+[build-dependencies]
+prost-build = "0.5"

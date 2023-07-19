@@ -1,0 +1,43 @@
+syntax = "proto2";
+
+package packets;
+
+message HandshakePacket {
+    required bytes publicKey = 1;
+    required bytes signature = 2;
+}
+
+message HandshakeResponsePacket {
+    required bytes publicKey = 1;
+    required bytes signature = 2;
+}
+
+message ListPacket {
+    message Entry {
+        required uint32 index = 1;
+        required uint64 size = 2;
+        required string name = 3;
+    };
+
+    repeated Entry entries = 1;
+}
+
+message ProgressPacket {
+    required uint32 index = 1;
+    required uint32 progress = 2;
+}
+
+message ChunkPacket {
+    required uint32 sequence = 1;
+    required bytes chunk = 2;
+}
+
+message Packet {
+    oneof value {
+        HandshakePacket handshake = 1;
+        HandshakeResponsePacket handshakeResponse = 2;
+        ListPacket list = 3;
+        ProgressPacket progress = 4;
+        ChunkPacket chunk = 5;
+    }
+}
