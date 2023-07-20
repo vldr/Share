@@ -1,5 +1,7 @@
 syntax = "proto2";
 
+package Packets;
+
 message HandshakePacket {
     required bytes publicKey = 1;
     required bytes signature = 2;

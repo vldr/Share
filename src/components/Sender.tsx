@@ -1,4 +1,4 @@
-import { Packet, IProgressPacket } from "../network/protobuf/Packets";
+import { Packets } from "../network/Packets";
 import { State, SendFile, ErrorState, LoadingState } from "./Types";
 import { Component, Match, Switch, createSignal } from "solid-js";
 import { NetworkSender } from "../network/NetworkSender";
@@ -24,7 +24,7 @@ const Sender: Component = () => {
   });
 
   const onMessage = (data: Uint8Array) => {
-    const packet = Packet.decode(data);
+    const packet = Packets.Packet.decode(data);
 
     switch (packet.value) {
       case "progress":
@@ -59,7 +59,7 @@ const Sender: Component = () => {
     setState({ type: "error", message });
   };
 
-  const onProgress = (packet: IProgressPacket) => {
+  const onProgress = (packet: Packets.IProgressPacket) => {
     const file = files[packet.index];
     if (!file) {
       return network.error("Expected valid progress packet index.");
@@ -110,7 +110,7 @@ const Sender: Component = () => {
 
   const onLoad = () => {
     const chunk = new Uint8Array(fileReader.result as ArrayBuffer);
-    const packet = Packet.encode({
+    const packet = Packets.Packet.encode({
       chunk: { chunk, sequence: sequence++ },
     });
 
@@ -175,7 +175,7 @@ const Sender: Component = () => {
       });
     }
 
-    const packet = Packet.encode({ list: { entries } });
+    const packet = Packets.Packet.encode({ list: { entries } });
     const data = packet.finish();
 
     network.send(data);

@@ -1,5 +1,5 @@
+import { Packets } from "../network/Packets";
 import { Component, Match, Switch, createSignal } from "solid-js";
-import { Packet, IChunkPacket, IListPacket } from "../network/protobuf/Packets";
 import { State, ReceiveFile, ErrorState, LoadingState } from "./Types";
 import { NetworkReceiver } from "../network/NetworkReceiver";
 import ErrorPage from "./pages/ErrorPage";
@@ -16,7 +16,7 @@ const Receiver: Component = () => {
   let length: number;
   let progress: number;
   let sequence: number;
-  let chunks: IChunkPacket[];
+  let chunks: Packets.IChunkPacket[];
 
   const [state, setState] = createSignal<State>({
     type: "loading",
@@ -24,7 +24,7 @@ const Receiver: Component = () => {
   });
 
   const onMessage = (data: Uint8Array) => {
-    const packet = Packet.decode(data);
+    const packet = Packets.Packet.decode(data);
 
     switch (packet.value) {
       case "list":
@@ -48,7 +48,7 @@ const Receiver: Component = () => {
     }
   };
 
-  const onList = async (packet: IListPacket) => {
+  const onList = async (packet: Packets.IListPacket) => {
     if (!packet.entries) {
       return network.error("Expected list entires to be valid.");
     }
@@ -82,7 +82,7 @@ const Receiver: Component = () => {
     setState({ type: "transferFile" });
   };
 
-  const onChunk = (packet: IChunkPacket) => {
+  const onChunk = (packet: Packets.IChunkPacket) => {
     const file = files[index];
     if (!file) {
       return network.error("Chunk packet does not match a given index.");
@@ -152,7 +152,7 @@ const Receiver: Component = () => {
   const onProgress = (file: ReceiveFile) => {
     progress = file.progress();
 
-    const packet = Packet.encode({ progress: { index: file.index, progress } });
+    const packet = Packets.Packet.encode({ progress: { index: file.index, progress } });
     const data = packet.finish();
 
     network.send(data);
