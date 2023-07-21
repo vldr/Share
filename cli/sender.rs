@@ -45,12 +45,13 @@ fn on_create_room(context: &Context, id: String) -> Status {
     let base64 = general_purpose::STANDARD.encode(&context.hmac);
     let url = format!("{}{}-{}", URL, id, base64);
 
-    println!("Created room: {}", url);
     println!();
 
-    if let Err(error) = qr2term::print_qr(url) {
+    if let Err(error) = qr2term::print_qr(&url) {
         println!("Failed to generate QR code: {}", error);
     }
+    
+    println!("Created room: {}", url);
 
     Status::Continue()
 }
