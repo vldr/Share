@@ -2,10 +2,7 @@ pub mod packets {
     include!(concat!(env!("OUT_DIR"), "/packets.rs"));
 }
 
-use aes_gcm::{
-    aead::{Aead, AeadCore},
-    Aes128Gcm,
-};
+use aes_gcm::{aead::{Aead, AeadCore}, Aes128Gcm};
 use futures_channel::mpsc::UnboundedSender;
 use packets::Packet;
 use prost::Message;
@@ -39,6 +36,12 @@ pub enum JsonPacketResponse {
     Error {
         message: String,
     },
+}
+
+pub enum Status {
+    Continue(),
+    Exit(),
+    Err(String),
 }
 
 pub trait JsonPacketSender {

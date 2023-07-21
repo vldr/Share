@@ -1,13 +1,12 @@
-use std::{fs, path::Path, process::exit};
-
 use crate::shared::{
     packets::{
         list_packet, packet::Value, ChunkPacket, HandshakePacket, HandshakeResponsePacket,
         ListPacket, Packet, ProgressPacket,
     },
-    JsonPacket, JsonPacketResponse, JsonPacketSender, PacketSender, Sender, Socket,
+    JsonPacket, JsonPacketResponse, JsonPacketSender, PacketSender, Sender, Socket, Status,
 };
 
+use std::{fs, path::Path, io::{Write, stdout}};
 use aes_gcm::{aead::Aead, Aes128Gcm, Key};
 use base64::{engine::general_purpose, Engine as _};
 use futures_util::{future, pin_mut, stream::TryStreamExt, StreamExt};
@@ -21,7 +20,7 @@ use tokio_tungstenite::tungstenite::protocol::Message as WebSocketMessage;
 
 const DESTINATION: u8 = 1;
 const NONCE_SIZE: usize = 12;
-const MAX_CHUNK_SIZE: usize = 65535;
+const MAX_CHUNK_SIZE: isize = u16::MAX as isize;
 const URL: &str = "https://share.vldr.org/#";
 
 #[derive(Clone)]
@@ -42,17 +41,17 @@ struct Context {
     task: Option<JoinHandle<()>>,
 }
 
-fn on_create_room(context: &Context, id: String) -> Result<(), String> {
+fn on_create_room(context: &Context, id: String) -> Status {
     let base64 = general_purpose::STANDARD.encode(&context.hmac);
 
     println!("Created room: {}{}-{}", URL, id, base64);
 
-    Ok(())
+    Status::Continue()
 }
 
-fn on_join_room(context: &Context, size: Option<usize>) -> Result<(), String> {
+fn on_join_room(context: &Context, size: Option<usize>) -> Status {
     if size.is_some() {
-        return Err("Invalid join room packet.".into());
+        return Status::Err("Invalid join room packet.".into());
     }
 
     let public_key = context.key.public_key().to_sec1_bytes().into_vec();
@@ -70,14 +69,14 @@ fn on_join_room(context: &Context, size: Option<usize>) -> Result<(), String> {
         .sender
         .send_packet(DESTINATION, Value::Handshake(handshake));
 
-    Ok(())
+    Status::Continue()
 }
 
-fn on_error(message: String) -> Result<(), String> {
-    Err(message)
+fn on_error(message: String) -> Status {
+    Status::Err(message)
 }
 
-fn on_leave_room(context: &mut Context, _: usize) -> Result<(), String> {
+fn on_leave_room(context: &mut Context, _: usize) -> Status {
     if let Some(task) = &context.task {
         task.abort();
     }
@@ -88,41 +87,38 @@ fn on_leave_room(context: &mut Context, _: usize) -> Result<(), String> {
     println!();
     println!("Transfer was interrupted because the receiver left.");
 
-    Ok(())
+    Status::Continue()
 }
 
-fn on_progress(context: &Context, progress: ProgressPacket) -> Result<(), String> {
+fn on_progress(context: &Context, progress: ProgressPacket) -> Status {
     let Some(file) = context.files.get(progress.index as usize) else {
-        return Err("Invalid index in progress packet.".into());
+        return Status::Err("Invalid index in progress packet.".into());
     };
 
     print!("\rTransferring '{}': {}%", file.name, progress.progress);
+    stdout().flush().unwrap();
 
     if progress.progress == 100 {
         println!();
 
         if progress.index as usize == context.files.len() - 1 {
-            exit(0);
+            return Status::Exit();
         }
     }
 
-    std::io::Write::flush(&mut std::io::stdout()).unwrap();
-
-    Ok(())
+    Status::Continue()
 }
 
 async fn on_chunk(sender: Sender, shared_key: Option<Aes128Gcm>, files: Vec<File>) {
     for file in files {
         let mut sequence = 0;
+        let mut chunk_size = MAX_CHUNK_SIZE;
         let mut size = file.size as isize;
-        let mut chunk_size = MAX_CHUNK_SIZE as isize;
 
         let mut handle = match tokio::fs::File::open(file.path).await {
             Ok(handle) => handle,
             Err(error) => {
-                print!("Error: Unable to open file '{}': {}", file.name, error);
-                std::io::Write::flush(&mut std::io::stdout()).unwrap();
-
+                println!("Error: Unable to open file '{}': {}", file.name, error);
                 return;
             }
         };
@@ -147,7 +143,7 @@ async fn on_chunk(sender: Sender, shared_key: Option<Aes128Gcm>, files: Vec<File
     }
 }
 
-fn on_handshake_finalize(context: &mut Context) -> Result<(), String> {
+fn on_handshake_finalize(context: &mut Context) -> Status {
     let mut entries = vec![];
 
     for (index, file) in context.files.iter().enumerate() {
@@ -172,15 +168,12 @@ fn on_handshake_finalize(context: &mut Context) -> Result<(), String> {
         context.files.clone(),
     )));
 
-    Ok(())
+    Status::Continue()
 }
 
-fn on_handshake(
-    context: &mut Context,
-    handshake_response: HandshakeResponsePacket,
-) -> Result<(), String> {
+fn on_handshake(context: &mut Context, handshake_response: HandshakeResponsePacket) -> Status {
     if context.shared_key.is_some() {
-        return Err("Already performed handshake.".into());
+        return Status::Err("Already performed handshake.".into());
     }
 
     let mut mac = Hmac::<Sha256>::new_from_slice(&context.hmac).unwrap();
@@ -188,7 +181,7 @@ fn on_handshake(
 
     let verification = mac.verify_slice(&handshake_response.signature);
     if verification.is_err() {
-        return Err("Invalid signature from the receiver.".into());
+        return Status::Err("Invalid signature from the receiver.".into());
     }
 
     let shared_public_key = PublicKey::from_sec1_bytes(&handshake_response.public_key).unwrap();
@@ -205,7 +198,7 @@ fn on_handshake(
     on_handshake_finalize(context)
 }
 
-fn on_message(context: &mut Context, message: WebSocketMessage) -> Result<(), String> {
+fn on_message(context: &mut Context, message: WebSocketMessage) -> Status {
     if message.is_text() {
         let text = message.into_text().unwrap();
         let packet = serde_json::from_str(&text).unwrap();
@@ -235,11 +228,12 @@ fn on_message(context: &mut Context, message: WebSocketMessage) -> Result<(), St
         return match value {
             Value::HandshakeResponse(handshake_response) => on_handshake(context, handshake_response),
             Value::Progress(progress) => on_progress(context, progress),
-            _ => Err(format!("Unexpected packet: {:?}", value)),
+
+            _ => Status::Err(format!("Unexpected packet: {:?}", value)),
         };
     }
 
-    Err("Invalid message type".into())
+    Status::Err("Invalid message type".into())
 }
 
 pub async fn start(socket: Socket, paths: Vec<String>) {
@@ -295,11 +289,19 @@ pub async fn start(socket: Socket, paths: Vec<String>) {
 
     let outgoing_handler = receiver.map(Ok).forward(outgoing);
     let incoming_handler = incoming.try_for_each(|message| {
-        if let Err(error) = on_message(&mut context, message) {
-            println!("Error: {}", error);
+        match on_message(&mut context, message) {
+            Status::Exit() => {
+                println!("Transfer has completed.");
 
-            context.sender.close_channel();
-        }
+                context.sender.close_channel();
+            },
+            Status::Err(error) => {
+                println!("Error: {}", error);
+
+                context.sender.close_channel();
+            },
+            _ => {},
+        };
 
         future::ok(())
     });

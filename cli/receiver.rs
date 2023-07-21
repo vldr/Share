@@ -1,11 +1,11 @@
-use std::{fs, path::Path, process::exit};
+use std::{fs, path::Path, io::stdout};
 
 use crate::shared::{
     packets::{
         packet::Value, ChunkPacket, HandshakePacket, HandshakeResponsePacket, ListPacket, Packet,
         ProgressPacket,
     },
-    JsonPacket, JsonPacketResponse, JsonPacketSender, PacketSender, Sender, Socket,
+    JsonPacket, JsonPacketResponse, JsonPacketSender, PacketSender, Sender, Socket, Status,
 };
 
 use aes_gcm::{aead::Aead, Aes128Gcm, Key};
@@ -43,38 +43,45 @@ struct Context {
     length: u64,
 }
 
-fn on_join_room(size: Option<usize>) -> Result<(), String> {
+fn on_join_room(size: Option<usize>) -> Status {
     if size.is_none() {
-        return Err("Invalid join room packet.".into());
+        return Status::Err("Invalid join room packet.".into());
     }
 
     println!("Connected to room.");
 
-    Ok(())
+    Status::Continue()
 }
 
-fn on_error(message: String) -> Result<(), String> {
-    Err(message)
+fn on_error(message: String) -> Status {
+    Status::Err(message)
 }
 
-fn on_leave_room(context: &mut Context, _: usize) -> Result<(), String> {
+fn on_leave_room(context: &mut Context, _: usize) -> Status {
     if context.files.iter().any(|file| file.progress < 100) {
         println!();
 
-        return Err("Transfer was interrupted because the host left the room.".into());
+        return Status::Err("Transfer was interrupted because the host left the room.".into());
     }
 
-    exit(0);
+    Status::Exit()
 }
 
-fn on_list(context: &mut Context, list: ListPacket) -> Result<(), String> {
+fn on_list(context: &mut Context, list: ListPacket) -> Status {
     for entry in list.entries {
         let path = sanitize_filename::sanitize(entry.name.clone());
+
         if Path::new(&path).exists() {
-            return Err(format!("The file {} already exists.", path));
+            return Status::Err(format!("The file '{}' already exists.", path));
         }
 
-        let handle = fs::File::create(path).map_err(|error| error.to_string())?;
+        let handle = match fs::File::create(&path) {
+            Ok(handle) => handle,
+            Err(error) => {
+                return Status::Err(format!("Error: Failed to create file '{}': {}", path, error));
+            }
+        };
+
         let file = File {
             name: entry.name,
             size: entry.size,
@@ -90,19 +97,19 @@ fn on_list(context: &mut Context, list: ListPacket) -> Result<(), String> {
     context.sequence = 0;
     context.length = 0;
 
-    Ok(())
+    Status::Continue()
 }
 
-fn on_chunk(context: &mut Context, chunk: ChunkPacket) -> Result<(), String> {
+fn on_chunk(context: &mut Context, chunk: ChunkPacket) -> Status {
     if chunk.sequence != context.sequence {
-        return Err(format!(
+        return Status::Err(format!(
             "Expected sequence {}, but got {}.",
             context.sequence, chunk.sequence
         ));
     }
 
     let Some(file) = context.files.get_mut(context.index) else {
-        return Err("Invalid file index.".into());
+        return Status::Err("Invalid file index.".into());
     };
 
     context.length += chunk.chunk.len() as u64;
@@ -126,7 +133,7 @@ fn on_chunk(context: &mut Context, chunk: ChunkPacket) -> Result<(), String> {
         );
 
         print!("\rTransferring '{}': {}%", file.name, file.progress);
-        std::io::Write::flush(&mut std::io::stdout()).unwrap();
+        std::io::Write::flush(&mut stdout()).unwrap();
     }
 
     if file.size == context.length {
@@ -134,14 +141,16 @@ fn on_chunk(context: &mut Context, chunk: ChunkPacket) -> Result<(), String> {
         context.length = 0;
         context.progress = 0;
         context.sequence = 0;
+
+        println!();
     }
 
-    Ok(())
+    Status::Continue()
 }
 
-fn on_handshake(context: &mut Context, handshake: HandshakePacket) -> Result<(), String> {
+fn on_handshake(context: &mut Context, handshake: HandshakePacket) -> Status {
     if context.shared_key.is_some() {
-        return Err("Already performed handshake.".into());
+        return Status::Err("Already performed handshake.".into());
     } 
 
     let mut mac = Hmac::<Sha256>::new_from_slice(&context.hmac).unwrap();
@@ -149,7 +158,7 @@ fn on_handshake(context: &mut Context, handshake: HandshakePacket) -> Result<(),
 
     let verification = mac.verify_slice(&handshake.signature);
     if verification.is_err() {
-        return Err("Invalid signature from the sender.".into());
+        return Status::Err("Invalid signature from the sender.".into());
     }
 
     let public_key = context.key.public_key().to_sec1_bytes().into_vec();
@@ -178,10 +187,10 @@ fn on_handshake(context: &mut Context, handshake: HandshakePacket) -> Result<(),
         .send_packet(DESTINATION, Value::HandshakeResponse(handshake_response));
     context.shared_key = Some(shared_key);
 
-    Ok(())
+    Status::Continue()
 }
 
-fn on_message(context: &mut Context, message: WebSocketMessage) -> Result<(), String> {
+fn on_message(context: &mut Context, message: WebSocketMessage) -> Status {
     if message.is_text() {
         let text = message.into_text().unwrap();
         let packet = serde_json::from_str(&text).unwrap();
@@ -191,7 +200,7 @@ fn on_message(context: &mut Context, message: WebSocketMessage) -> Result<(), St
             JsonPacketResponse::Leave { index } => on_leave_room(context, index),
             JsonPacketResponse::Error { message } => on_error(message),
 
-            _ => Err(format!("Unexpected json packet: {:?}", packet)),
+            _ => Status::Err(format!("Unexpected json packet: {:?}", packet)),
         };
     } else if message.is_binary() {
         let data = message.into_data();
@@ -214,11 +223,11 @@ fn on_message(context: &mut Context, message: WebSocketMessage) -> Result<(), St
             Value::Chunk(chunk) => on_chunk(context, chunk),
             Value::Handshake(handshake) => on_handshake(context, handshake),
 
-            _ => Err(format!("Unexpected packet: {:?}", value)),
+            _ => Status::Err(format!("Unexpected packet: {:?}", value)),
         };
     }
 
-    Err("Invalid message type".into())
+    Status::Err("Invalid message type".into())
 }
 
 pub async fn start(socket: Socket, fragment: &str) {
@@ -260,11 +269,19 @@ pub async fn start(socket: Socket, fragment: &str) {
 
     let outgoing_handler = receiver.map(Ok).forward(outgoing);
     let incoming_handler = incoming.try_for_each(|message| {
-        if let Err(error) = on_message(&mut context, message) {
-            println!("Error: {}", error);
+        match on_message(&mut context, message) {
+            Status::Exit() => {
+                println!("Transfer has completed.");
 
-            context.sender.close_channel();
-        }
+                context.sender.close_channel();
+            },
+            Status::Err(error) => {
+                println!("Error: {}", error);
+
+                context.sender.close_channel();
+            },
+            _ => {},
+        };
 
         future::ok(())
     });
