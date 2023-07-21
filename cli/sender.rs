@@ -50,7 +50,8 @@ fn on_create_room(context: &Context, id: String) -> Status {
     if let Err(error) = qr2term::print_qr(&url) {
         println!("Failed to generate QR code: {}", error);
     }
-    
+
+    println!();
     println!("Created room: {}", url);
 
     Status::Continue()
