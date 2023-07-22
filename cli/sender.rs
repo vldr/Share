@@ -259,11 +259,17 @@ pub async fn start(socket: Socket, paths: Vec<String>) {
             }
         };
 
+        let metadata = handle.metadata().unwrap();
+        if metadata.is_dir() {
+            println!("Error: The path '{}' does not point to a file.", path);
+            return;
+        }
+
         let name = Path::new(&path).file_name().unwrap().to_str().unwrap();
-        let size = handle.metadata().unwrap().len();
+        let size = metadata.len();
 
         if size == 0 {
-            println!("Error: The file {} is empty and cannot be sent.", name);
+            println!("Error: The file '{}' is empty and cannot be sent.", name);
             return;
         }
 
