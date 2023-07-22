@@ -6,7 +6,7 @@ use crate::shared::{
     JsonPacket, JsonPacketResponse, JsonPacketSender, PacketSender, Sender, Socket, Status,
 };
 
-use std::{fs, path::Path, io::{Write, stdout}};
+use std::{fs, path::Path, io::{Write, stdout}, time::Duration};
 use aes_gcm::{aead::Aead, Aes128Gcm, Key};
 use base64::{engine::general_purpose, Engine as _};
 use futures_util::{future, pin_mut, stream::TryStreamExt, StreamExt};
@@ -15,12 +15,13 @@ use p256::{ecdh::EphemeralSecret, PublicKey};
 use prost::Message;
 use rand::{rngs::OsRng, RngCore};
 use sha2::Sha256;
-use tokio::{io::AsyncReadExt, task::JoinHandle};
+use tokio::{io::AsyncReadExt, task::JoinHandle, time::sleep};
 use tokio_tungstenite::tungstenite::protocol::Message as WebSocketMessage;
 
 const DESTINATION: u8 = 1;
 const NONCE_SIZE: usize = 12;
 const MAX_CHUNK_SIZE: isize = u16::MAX as isize;
+const DELAY: Duration = Duration::from_millis(750);
 const URL: &str = "https://share.vldr.org/#";
 
 #[derive(Clone)]
@@ -148,6 +149,8 @@ async fn on_chunk(sender: Sender, shared_key: Option<Aes128Gcm>, files: Vec<File
             size -= chunk_size;
             sequence += 1;
         }
+
+        sleep(DELAY).await;
     }
 }
 

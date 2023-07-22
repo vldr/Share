@@ -11,6 +11,7 @@ import TransferFileCompletedPage from "./pages/TransferFileCompletedPage";
 
 const Sender: Component = () => {
   const MAX_CHUNK_SIZE = 65535;
+  const DELAY = 750;
 
   let files: SendFile[] = [];
   let index: number;
@@ -135,6 +136,9 @@ const Sender: Component = () => {
       sequence = 0;
       chunkSize = MAX_CHUNK_SIZE;
       size = files[index].size;
+
+      setTimeout(sendChunk, DELAY);
+      return;
     }
 
     const file = files[index].file;
