@@ -17,6 +17,7 @@ const Receiver: Component = () => {
   let progress: number;
   let sequence: number;
   let chunks: Packets.IChunkPacket[];
+  let writer: WritableStreamDefaultWriter<Uint8Array>;
 
   const [state, setState] = createSignal<State>({
     type: "loading",
@@ -56,17 +57,10 @@ const Receiver: Component = () => {
     for (const file of packet.entries) {
       const [progress, setProgress] = createSignal<number>(0);
 
-      const fileStream = StreamSaver.createWriteStream(file.name, {
-        size: file.size as number,
-      });
-
-      const writer = fileStream.getWriter();
-
       files.push({
         name: file.name,
         index: file.index,
         size: file.size as number,
-        writer,
 
         progress,
         setProgress,
@@ -88,14 +82,18 @@ const Receiver: Component = () => {
       return network.error("Chunk packet does not match a given index.");
     }
 
+    if (packet.sequence === 0) {
+      writer = StreamSaver.createWriteStream(file.name, { size: file.size as number }).getWriter();
+    }
+
     if (packet.sequence !== sequence) {
       chunks.push(packet);
     } else {
-      file.writer
+      writer
         .write(packet.chunk)
         .catch(() => network.error("File transfer cancelled."));
 
-      onChunkReorder(file);
+      onChunkReorder();
     }
 
     length += packet.chunk.byteLength;
@@ -107,11 +105,11 @@ const Receiver: Component = () => {
     }
 
     if (file.size === length) {
-      onChunkFinish(file);
+      onChunkFinish();
     }
   };
 
-  const onChunkReorder = (file: ReceiveFile) => {
+  const onChunkReorder = () => {
     sequence++;
 
     if (chunks.length > 0) {
@@ -123,7 +121,7 @@ const Receiver: Component = () => {
         if (chunk.sequence === sequence) {
           sequence++;
 
-          file.writer
+          writer
             .write(chunk.chunk)
             .catch(() => network.error("File transfer cancelled."));
 
@@ -135,8 +133,8 @@ const Receiver: Component = () => {
     }
   };
 
-  const onChunkFinish = (file: ReceiveFile) => {
-    file.writer.close();
+  const onChunkFinish = () => {
+    writer.close();
 
     index++;
     length = 0;
@@ -160,7 +158,9 @@ const Receiver: Component = () => {
 
   const onUnload = () => {
     for (const file of files) {
-      file.writer.abort();
+      if (writer) {
+        writer.abort();
+      }
     }
   };
 

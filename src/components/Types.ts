@@ -52,6 +52,4 @@ export type ReceiveFile = {
 
   setProgress: Setter<number>;
   progress: Accessor<number>;
-
-  writer: WritableStreamDefaultWriter<Uint8Array>;
 };
