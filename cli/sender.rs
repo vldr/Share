@@ -280,7 +280,7 @@ pub async fn start(socket: Socket, paths: Vec<String>) {
         });
     }
 
-    let mut hmac = [0u8; 64];
+    let mut hmac = [0u8; 32];
     OsRng.fill_bytes(&mut hmac);
 
     let key = EphemeralSecret::random(&mut OsRng);

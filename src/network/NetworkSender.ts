@@ -47,6 +47,7 @@ export class NetworkSender {
         {
           name: "HMAC",
           hash: { name: "SHA-256" },
+          length: 256,
         },
         true,
         ["sign", "verify"]
