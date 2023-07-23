@@ -157,10 +157,8 @@ const Receiver: Component = () => {
   };
 
   const onUnload = () => {
-    for (const file of files) {
-      if (writer) {
-        writer.abort();
-      }
+    if (writer) {
+      writer.abort();
     }
   };
 

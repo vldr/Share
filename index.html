@@ -24,6 +24,15 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    <script>
+      function resize() { document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px"); }
+
+      window.WebKitPoint = undefined;
+      window.safari = undefined;
+      window.onresize = resize;
+
+      resize();
+    </script>
     <script src="/src/index.tsx" type="module"></script>
   </body>
 </html>
