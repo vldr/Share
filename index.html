@@ -20,12 +20,21 @@
 
     <link rel="icon" href="icon.png" />
     <title>Share</title>
-    <script type="module" crossorigin src="/assets/index-1e17d00a.js"></script>
-    <link rel="stylesheet" href="/assets/index-885746aa.css">
+    <script type="module" crossorigin src="/assets/index-034af7cf.js"></script>
+    <link rel="stylesheet" href="/assets/index-90d27a3e.css">
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    <script>
+      function resize() { document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px"); }
+
+      window.WebKitPoint = undefined;
+      window.safari = undefined;
+      window.onresize = resize;
+
+      resize();
+    </script>
     
   </body>
 </html>
