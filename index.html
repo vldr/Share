@@ -26,9 +26,6 @@
     <div id="root"></div>
     <script>
       function resize() { document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px"); }
-
-      window.WebKitPoint = undefined;
-      window.safari = undefined;
       window.onresize = resize;
 
       resize();
