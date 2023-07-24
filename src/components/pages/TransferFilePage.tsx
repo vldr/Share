@@ -15,7 +15,7 @@ const TransferFilePage: Component<{ files: (SendFile | ReceiveFile)[] }> = (
   };
 
   return (
-    <div class="flex flex-col h-fit min-dvh-screen justify-center items-center py-8 px-4 text-center">
+    <div class="flex flex-col h-fit min-dvh-screen justify-center items-center p-8 text-center">
       <div class="text-4xl max-w-lg mb-3">Transferring file(s)</div>
       <div class="text-lg max-w-lg mb-6 px-3">
         Keep your <b>browser tab open</b> as data is sent in real-time.

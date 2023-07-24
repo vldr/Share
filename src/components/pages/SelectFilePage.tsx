@@ -92,7 +92,7 @@ const SelectFilePage: Component<{
 
   return (
     <div class="flex h-fit min-dvh-screen justify-center items-center">
-      <div class="flex flex-col-reverse bg-[#23272c] max-w-[26.5rem] overflow-hidden text-center mx-4 mb-4">
+      <div class="flex flex-col-reverse bg-[#23272c] max-w-[26.5rem] overflow-hidden text-center mx-8 mb-4">
         <div
           class="flex flex-col items-center justify-center border-2 border-dashed rounded-md border-[#64676e] py-[85px] pb-[95px]"
           ref={dropElement}
