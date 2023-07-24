@@ -22,7 +22,7 @@ You can use Share from the command-line by downloading the precompiled binary fo
 
 The following are the command-line arguments for the application:
 
-`relay [file(s) | url]`
+`share-cli [file(s) | url]`
 
 ## Building and Running
 
