@@ -12,7 +12,7 @@ const TransferFileCompletedPage: Component = () => {
   };
 
   return (
-    <div class="flex flex-col h-fit min-dvh-screen justify-center items-center px-8 pb-4 text-center">
+    <div class="flex flex-col h-fit min-dvh-screen justify-center items-center px-4 pb-4 text-center">
       <svg class="w-28 h-28" viewBox="0 0 100 125">
         <g transform="translate(0,-952.36218)">
           <path
