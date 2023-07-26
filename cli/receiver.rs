@@ -1,4 +1,4 @@
-use std::{fs, path::Path, io::stdout};
+use std::{fs, io::stdout, path::Path, process::exit};
 
 use crate::shared::{
     packets::{
@@ -78,7 +78,10 @@ fn on_list(context: &mut Context, list: ListPacket) -> Status {
         let handle = match fs::File::create(&path) {
             Ok(handle) => handle,
             Err(error) => {
-                return Status::Err(format!("Error: Failed to create file '{}': {}", path, error));
+                return Status::Err(format!(
+                    "Error: Failed to create file '{}': {}",
+                    path, error
+                ));
             }
         };
 
@@ -151,7 +154,7 @@ fn on_chunk(context: &mut Context, chunk: ChunkPacket) -> Status {
 fn on_handshake(context: &mut Context, handshake: HandshakePacket) -> Status {
     if context.shared_key.is_some() {
         return Status::Err("Already performed handshake.".into());
-    } 
+    }
 
     let mut mac = Hmac::<Sha256>::new_from_slice(&context.hmac).unwrap();
     mac.update(&handshake.public_key);
@@ -245,7 +248,7 @@ pub async fn start(socket: Socket, fragment: &str) {
 
     let key = EphemeralSecret::random(&mut OsRng);
 
-    let (sender, receiver) = futures_channel::mpsc::unbounded();
+    let (sender, receiver) = flume::unbounded();
     let (outgoing, incoming) = socket.split();
 
     let mut context = Context {
@@ -267,20 +270,20 @@ pub async fn start(socket: Socket, fragment: &str) {
         .sender
         .send_json_packet(JsonPacket::Join { id: id.to_string() });
 
-    let outgoing_handler = receiver.map(Ok).forward(outgoing);
+    let outgoing_handler = receiver.stream().map(Ok).forward(outgoing);
     let incoming_handler = incoming.try_for_each(|message| {
         match on_message(&mut context, message) {
             Status::Exit() => {
                 println!("Transfer has completed.");
 
-                context.sender.close_channel();
-            },
+                exit(0);
+            }
             Status::Err(error) => {
                 println!("Error: {}", error);
 
-                context.sender.close_channel();
-            },
-            _ => {},
+                exit(0);
+            }
+            _ => {}
         };
 
         future::ok(())

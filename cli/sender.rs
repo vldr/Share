@@ -6,7 +6,6 @@ use crate::shared::{
     JsonPacket, JsonPacketResponse, JsonPacketSender, PacketSender, Sender, Socket, Status,
 };
 
-use std::{fs, path::Path, io::{Write, stdout}, time::Duration};
 use aes_gcm::{aead::Aead, Aes128Gcm, Key};
 use base64::{engine::general_purpose, Engine as _};
 use futures_util::{future, pin_mut, stream::TryStreamExt, StreamExt};
@@ -15,6 +14,13 @@ use p256::{ecdh::EphemeralSecret, PublicKey};
 use prost::Message;
 use rand::{rngs::OsRng, RngCore};
 use sha2::Sha256;
+use std::{
+    fs,
+    io::{stdout, Write},
+    path::Path,
+    process::exit,
+    time::Duration,
+};
 use tokio::{io::AsyncReadExt, task::JoinHandle, time::sleep};
 use tokio_tungstenite::tungstenite::protocol::Message as WebSocketMessage;
 
@@ -237,7 +243,9 @@ fn on_message(context: &mut Context, message: WebSocketMessage) -> Status {
         let value = packet.value.unwrap();
 
         return match value {
-            Value::HandshakeResponse(handshake_response) => on_handshake(context, handshake_response),
+            Value::HandshakeResponse(handshake_response) => {
+                on_handshake(context, handshake_response)
+            }
             Value::Progress(progress) => on_progress(context, progress),
 
             _ => Status::Err(format!("Unexpected packet: {:?}", value)),
@@ -285,7 +293,7 @@ pub async fn start(socket: Socket, paths: Vec<String>) {
 
     let key = EphemeralSecret::random(&mut OsRng);
 
-    let (sender, receiver) = futures_channel::mpsc::unbounded();
+    let (sender, receiver) = flume::unbounded();
     let (outgoing, incoming) = socket.split();
 
     let mut context = Context {
@@ -299,25 +307,25 @@ pub async fn start(socket: Socket, paths: Vec<String>) {
     };
 
     println!("Attempting to create room...");
-    
+
     context
         .sender
         .send_json_packet(JsonPacket::Create { size: Some(2) });
 
-    let outgoing_handler = receiver.map(Ok).forward(outgoing);
+    let outgoing_handler = receiver.stream().map(Ok).forward(outgoing);
     let incoming_handler = incoming.try_for_each(|message| {
         match on_message(&mut context, message) {
             Status::Exit() => {
                 println!("Transfer has completed.");
 
-                context.sender.close_channel();
-            },
+                exit(0);
+            }
             Status::Err(error) => {
                 println!("Error: {}", error);
 
-                context.sender.close_channel();
-            },
-            _ => {},
+                exit(0);
+            }
+            _ => {}
         };
 
         future::ok(())

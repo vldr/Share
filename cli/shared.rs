@@ -2,8 +2,10 @@ pub mod packets {
     include!(concat!(env!("OUT_DIR"), "/packets.rs"));
 }
 
-use aes_gcm::{aead::{Aead, AeadCore}, Aes128Gcm};
-use futures_channel::mpsc::UnboundedSender;
+use aes_gcm::{
+    aead::{Aead, AeadCore},
+    Aes128Gcm,
+};
 use packets::Packet;
 use prost::Message;
 use rand::rngs::OsRng;
@@ -62,7 +64,7 @@ impl JsonPacketSender for Sender {
     fn send_json_packet(&self, packet: JsonPacket) {
         let serialized_packet = serde_json::to_string(&packet).unwrap();
 
-        self.unbounded_send(WebSocketMessage::Text(serialized_packet))
+        self.send(WebSocketMessage::Text(serialized_packet))
             .unwrap()
     }
 }
@@ -74,7 +76,7 @@ impl PacketSender for Sender {
         let mut serialized_packet = packet.encode_to_vec();
         serialized_packet.insert(0, destination);
 
-        self.unbounded_send(WebSocketMessage::Binary(serialized_packet))
+        self.send(WebSocketMessage::Binary(serialized_packet))
             .unwrap()
     }
 
@@ -98,10 +100,10 @@ impl PacketSender for Sender {
         serialized_packet.append(&mut ciphertext);
         serialized_packet.insert(0, destination);
 
-        self.unbounded_send(WebSocketMessage::Binary(serialized_packet))
+        self.send(WebSocketMessage::Binary(serialized_packet))
             .unwrap()
     }
 }
 
-pub type Sender = UnboundedSender<WebSocketMessage>;
+pub type Sender = flume::Sender<WebSocketMessage>;
 pub type Socket = WebSocketStream<MaybeTlsStream<TcpStream>>;
