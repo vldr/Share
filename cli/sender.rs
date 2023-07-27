@@ -18,7 +18,6 @@ use std::{
     fs,
     io::{stdout, Write},
     path::Path,
-    process::exit,
     time::Duration,
 };
 use tokio::{io::AsyncReadExt, task::JoinHandle, time::sleep};
@@ -318,12 +317,12 @@ pub async fn start(socket: Socket, paths: Vec<String>) {
             Status::Exit() => {
                 println!("Transfer has completed.");
 
-                exit(0);
+                return future::err(tungstenite::Error::ConnectionClosed);
             }
             Status::Err(error) => {
                 println!("Error: {}", error);
 
-                exit(0);
+                return future::err(tungstenite::Error::ConnectionClosed);
             }
             _ => {}
         };

@@ -1,4 +1,4 @@
-use std::{fs, io::stdout, path::Path, process::exit};
+use std::{fs, io::stdout, path::Path};
 
 use crate::shared::{
     packets::{
@@ -266,6 +266,7 @@ pub async fn start(socket: Socket, fragment: &str) {
     };
 
     println!("Attempting to join room '{}'...", id);
+
     context
         .sender
         .send_json_packet(JsonPacket::Join { id: id.to_string() });
@@ -276,12 +277,12 @@ pub async fn start(socket: Socket, fragment: &str) {
             Status::Exit() => {
                 println!("Transfer has completed.");
 
-                exit(0);
+                return future::err(tungstenite::Error::ConnectionClosed);
             }
             Status::Err(error) => {
                 println!("Error: {}", error);
 
-                exit(0);
+                return future::err(tungstenite::Error::ConnectionClosed);
             }
             _ => {}
         };
