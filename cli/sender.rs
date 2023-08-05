@@ -292,7 +292,7 @@ pub async fn start(socket: Socket, paths: Vec<String>) {
 
     let key = EphemeralSecret::random(&mut OsRng);
 
-    let (sender, receiver) = flume::unbounded();
+    let (sender, receiver) = flume::bounded(1000);
     let (outgoing, incoming) = socket.split();
 
     let mut context = Context {
