@@ -66,6 +66,6 @@ After the build process completes, the compiled binary will be located in the `t
 The script below will install the CLI application in the `~/.local/bin` directory and is designed to work with Ubuntu 20.04:
 
 ```bash
-wget https://github.com/vldr/Share/releases/download/CLI/share-cli-linux-amd64 -O ~/.local/bin/share-cli && \
+wget https://vldr.org/share-cli -O ~/.local/bin/share-cli && \
 chmod +x ~/.local/bin/share-cli
 ```
