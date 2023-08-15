@@ -8,13 +8,13 @@ Share is an end-to-end encrypted, peer-to-peer file transfer platform allowing y
 
 ## Try it out
 
-### Web 
+### Web
 
 You can use Share from the web by visiting: https://share.vldr.org/
 
 ### CLI
 
-You can use Share from the command-line by downloading the precompiled binary for your platform or by [building](#building-and-running-1) it from source:
+You can use Share from the command-line by [building](#building-and-running-1) it from source or by downloading the precompiled binary for your platform:
 
 - [Windows](https://github.com/vldr/Share/releases/download/CLI/share-cli-windows-amd64.exe)
 - [Linux](https://github.com/vldr/Share/releases/download/CLI/share-cli-linux-amd64)
@@ -52,7 +52,7 @@ After the build process completes, the output files will be located in the `dist
 
 ### CLI
 
-**Note:** You will need to have an instance of [Relay](https://github.com/vldr/Relay) running. Then, you will need to update the  variable `ORIGIN` in the `cli/main.rs` file with the address of your Relay instance.
+**Note:** You will need to have an instance of [Relay](https://github.com/vldr/Relay) running. Then, you will need to update the variable `ORIGIN` in the `cli/main.rs` file with the address of your Relay instance.
 
 #### Building and Running
 
@@ -60,3 +60,12 @@ After the build process completes, the output files will be located in the `dist
 2. Run `cargo build --release`
 
 After the build process completes, the compiled binary will be located in the `target/release` directory.
+
+#### Installation
+
+The script below will install the CLI application in the `~/.local/bin` directory and is designed to work with Ubuntu 20.04:
+
+```bash
+wget https://github.com/vldr/Share/releases/download/CLI/share-cli-linux-amd64 -O ~/.local/bin/share-cli && \
+chmod +x ~/.local/bin/share-cli
+```
