@@ -60,13 +60,3 @@ After the build process completes, the output files will be located in the `dist
 2. Run `cargo build --release`
 
 After the build process completes, the compiled binary will be located in the `target/release` directory.
-
-#### Installation
-
-The script below will install the CLI application in the `~/.local/bin` directory and is designed to work with Ubuntu 20.04. After the script finishes, you might need to restart your terminal session for the application to start working.
-
-```bash
-mkdir -p ~/.local/bin && \
-wget https://vldr.org/share-cli -O ~/.local/bin/share-cli && \
-chmod +x ~/.local/bin/share-cli
-```
