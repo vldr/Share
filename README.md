@@ -10,7 +10,7 @@ Share is an end-to-end encrypted, peer-to-peer file transfer platform allowing y
 
 ### Web
 
-You can use Share from the web by visiting: https://share.vldr.org/
+You can use Share from the web — [share.vldr.org](https://share.vldr.org/) 
 
 ### CLI
 
