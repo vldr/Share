@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "",
   "scripts": {
-    "proto": "npx pbjs -t static-module -w es6 -o src/network/Packets.js protos/packets.proto && npx pbts src/network/Packets.js -o src/network/Packets.d.ts",
+    "proto": "npx pbjs -t static-module -w es6 -o src/network/Packets.js packets.proto && npx pbts src/network/Packets.js -o src/network/Packets.d.ts",
     "start": "npm run proto && vite",
     "dev": "npm run proto && vite --host",
     "build": "npm run proto && vite build",
