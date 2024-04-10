@@ -23,7 +23,7 @@
     "vite-plugin-solid": "^2.7.0"
   },
   "dependencies": {
-    "protobufjs": "^7.2.4",
+    "protobufjs": "^7.2.5",
     "qrcode": "^1.5.3",
     "solid-js": "^1.7.6",
     "streamsaver": "^2.0.6"
