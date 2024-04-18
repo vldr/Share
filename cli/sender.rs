@@ -21,7 +21,7 @@ use std::{
     time::Duration,
 };
 use tokio::{io::AsyncReadExt, task::JoinHandle, time::sleep};
-use tokio_tungstenite::tungstenite::protocol::Message as WebSocketMessage;
+use tokio_tungstenite::tungstenite::{protocol::Message as WebSocketMessage, Error};
 
 const DESTINATION: u8 = 1;
 const NONCE_SIZE: usize = 12;
@@ -95,16 +95,21 @@ fn on_leave_room(context: &mut Context, _: usize) -> Status {
         task.abort();
     }
 
+    context.key = EphemeralSecret::random(&mut OsRng);
     context.shared_key = None;
     context.task = None;
 
     println!();
-    println!("Transfer was interrupted because the receiver left.");
+    println!("Transfer was interrupted because the receiver disconnected.");
 
     Status::Continue()
 }
 
 fn on_progress(context: &Context, progress: ProgressPacket) -> Status {
+    if context.shared_key.is_none() {
+        return Status::Err("Invalid progress packet: no shared key established".into());
+    }
+
     let Some(file) = context.files.get(progress.index as usize) else {
         return Status::Err("Invalid index in progress packet.".into());
     };
@@ -317,12 +322,12 @@ pub async fn start(socket: Socket, paths: Vec<String>) {
             Status::Exit() => {
                 println!("Transfer has completed.");
 
-                return future::err(tungstenite::Error::ConnectionClosed);
+                return future::err(Error::ConnectionClosed);
             }
             Status::Err(error) => {
                 println!("Error: {}", error);
 
-                return future::err(tungstenite::Error::ConnectionClosed);
+                return future::err(Error::ConnectionClosed);
             }
             _ => {}
         };

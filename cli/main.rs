@@ -3,11 +3,13 @@ pub mod sender;
 pub mod shared;
 
 use std::env;
-use tokio_tungstenite::connect_async;
-use tungstenite::{client::IntoClientRequest, http::HeaderValue};
+use tokio_tungstenite::{
+    connect_async,
+    tungstenite::{client::IntoClientRequest, http::HeaderValue},
+};
 use url::Url;
 
-const ORIGIN: &str = "ws://vldr.org:1234";
+const ORIGIN: &str = "wss://relay.vldr.org/";
 
 #[tokio::main]
 async fn main() {
@@ -27,10 +29,7 @@ async fn main() {
 
     println!("Attempting to connect...");
 
-    let Ok((socket, _)) = connect_async(request).await else {
-        println!("Error: Failed to connect to origin.");
-        return;
-    };
+    let (socket, _) = connect_async(request).await.unwrap();
 
     if let Ok(url) = Url::parse(&argument) {
         let Some(fragment) = url.fragment() else {

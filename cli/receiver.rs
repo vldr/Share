@@ -16,7 +16,7 @@ use p256::{ecdh::EphemeralSecret, pkcs8::der::Writer, PublicKey};
 use prost::Message;
 use rand::rngs::OsRng;
 use sha2::Sha256;
-use tokio_tungstenite::tungstenite::protocol::Message as WebSocketMessage;
+use tokio_tungstenite::tungstenite::{protocol::Message as WebSocketMessage, Error};
 
 const DESTINATION: u8 = 0;
 const NONCE_SIZE: usize = 12;
@@ -68,6 +68,10 @@ fn on_leave_room(context: &mut Context, _: usize) -> Status {
 }
 
 fn on_list(context: &mut Context, list: ListPacket) -> Status {
+    if context.shared_key.is_none() {
+        return Status::Err("Invalid list packet: no shared key established".into());
+    }
+
     for entry in list.entries {
         let path = sanitize_filename::sanitize(entry.name.clone());
 
@@ -104,6 +108,10 @@ fn on_list(context: &mut Context, list: ListPacket) -> Status {
 }
 
 fn on_chunk(context: &mut Context, chunk: ChunkPacket) -> Status {
+    if context.shared_key.is_none() {
+        return Status::Err("Invalid chunk packet: no shared key established".into());
+    }
+
     if chunk.sequence != context.sequence {
         return Status::Err(format!(
             "Expected sequence {}, but got {}.",
@@ -277,12 +285,12 @@ pub async fn start(socket: Socket, fragment: &str) {
             Status::Exit() => {
                 println!("Transfer has completed.");
 
-                return future::err(tungstenite::Error::ConnectionClosed);
+                return future::err(Error::ConnectionClosed);
             }
             Status::Err(error) => {
                 println!("Error: {}", error);
 
-                return future::err(tungstenite::Error::ConnectionClosed);
+                return future::err(Error::ConnectionClosed);
             }
             _ => {}
         };
