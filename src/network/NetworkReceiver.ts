@@ -250,44 +250,54 @@ export class NetworkReceiver {
     });
     const data = packet.finish();
 
-    this.send(data);
+    this.sendPlaintext(data);
   }
 
   private sendJSON(data: any) {
     this.webSocket.send(JSON.stringify(data));
   }
 
-  public async send(data: Uint8Array) {
-    const index = new Uint8Array([this.DESTINATION]);
-
+  private sendPlaintext(data: Uint8Array) {
     if (this.sharedKey) {
-      const iv = window.crypto.getRandomValues(new Uint8Array(this.IV_SIZE));
+      return this.error(
+        "Failed to send plaintext: shared key already established"
+      );
+    }
 
-      try {
-        const ciphertext = await window.crypto.subtle.encrypt(
-          { name: "AES-GCM", iv },
-          this.sharedKey,
-          data
-        );
+    const index = new Uint8Array([this.DESTINATION]);
+    const merged = new Uint8Array(index.byteLength + data.byteLength);
+    merged.set(index);
+    merged.set(data, index.length);
 
-        const merged = new Uint8Array(
-          index.byteLength + iv.byteLength + ciphertext.byteLength
-        );
+    this.webSocket.send(merged);
+  }
 
-        merged.set(index);
-        merged.set(iv, index.length);
-        merged.set(new Uint8Array(ciphertext), iv.length + index.length);
+  public async send(data: Uint8Array) {
+    if (!this.sharedKey) {
+      return this.error("Failed to send encrypted: no shared key established");
+    }
 
-        this.webSocket.send(merged);
-      } catch (error) {
-        return this.error("Failed to encrypt: " + error);
-      }
-    } else {
-      const merged = new Uint8Array(index.byteLength + data.byteLength);
+    const index = new Uint8Array([this.DESTINATION]);
+    const iv = window.crypto.getRandomValues(new Uint8Array(this.IV_SIZE));
+
+    try {
+      const ciphertext = await window.crypto.subtle.encrypt(
+        { name: "AES-GCM", iv },
+        this.sharedKey,
+        data
+      );
+
+      const merged = new Uint8Array(
+        index.byteLength + iv.byteLength + ciphertext.byteLength
+      );
+
       merged.set(index);
-      merged.set(data, index.length);
+      merged.set(iv, index.length);
+      merged.set(new Uint8Array(ciphertext), iv.length + index.length);
 
       this.webSocket.send(merged);
+    } catch (error) {
+      return this.error("Failed to send encrypted: " + error);
     }
   }
 }
