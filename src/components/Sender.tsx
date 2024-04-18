@@ -109,7 +109,11 @@ const Sender: Component = () => {
     network.init();
   };
 
-  const onLoad = () => {
+  const onSendChunk = () => {
+    if (state().type !== "transferFile") {
+      return;
+    }
+
     const chunk = new Uint8Array(fileReader.result as ArrayBuffer);
     const packet = Packets.Packet.encode({
       chunk: { chunk, sequence: sequence++ },
@@ -122,10 +126,6 @@ const Sender: Component = () => {
   };
 
   const sendChunk = () => {
-    if (state().type !== "transferFile") {
-      return;
-    }
-
     if (size === 0) {
       if (index === files.length - 1) {
         return;
@@ -186,7 +186,7 @@ const Sender: Component = () => {
   };
 
   const fileReader = new FileReader();
-  fileReader.onload = onLoad;
+  fileReader.onload = onSendChunk;
 
   const network = new NetworkSender(
     import.meta.env.VITE_URI || String(),
