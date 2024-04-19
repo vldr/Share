@@ -29,7 +29,10 @@ async fn main() {
 
     println!("Attempting to connect...");
 
-    let (socket, _) = connect_async(request).await.unwrap();
+    let Ok((socket, _)) = connect_async(request).await else {
+        println!("Error: Failed to connect.");
+        return;
+    };
 
     if let Ok(url) = Url::parse(&argument) {
         let Some(fragment) = url.fragment() else {
