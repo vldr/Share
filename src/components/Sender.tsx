@@ -207,7 +207,7 @@ const Sender: Component = () => {
         <LoadingPage message={(state() as LoadingState).message} />
       </Match>
       <Match when={state().type === "invite"}>
-        <InvitePage />
+        <InvitePage multiple={files.length > 1} />
       </Match>
       <Match when={state().type === "selectFile"}>
         <SelectFilePage selectFiles={onSelectFiles} />
