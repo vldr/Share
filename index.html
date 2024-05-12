@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#1a1d21" />
     <meta
       name="keywords"
       content="file, transfer, peer-to-peer, encrypted, real-time" />
@@ -25,7 +25,12 @@
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
     <script>
-      function resize() { document.documentElement.style.setProperty("--vh", (window.innerHeight * 0.01) + "px"); }
+      function resize() {
+        document.documentElement.style.setProperty(
+          "--vh",
+          window.innerHeight * 0.01 + "px"
+        );
+      }
       window.onresize = resize;
 
       resize();
