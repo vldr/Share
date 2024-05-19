@@ -27,7 +27,7 @@ const InvitePage: Component<{ multiple: boolean }> = (props) => {
   });
 
   return (
-    <div class="flex flex-row h-fit min-dvh-screen justify-center items-center p-8 py-4 pb-12 gap-8">
+    <div class="flex flex-row h-fit min-dvh-screen justify-center items-center px-8 py-4 gap-8">
       <div class="flex flex-col text-center">
         <Show
           when={visible()}
