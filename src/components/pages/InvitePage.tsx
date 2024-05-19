@@ -36,7 +36,20 @@ const InvitePage: Component<{ multiple: boolean }> = (props) => {
               <img class="rounded" src={QR()} />
               <button
                 onClick={onShow}
-                class="transition w-fit max-w-lg font-bold py-3 px-6 mt-4 rounded-3xl bg-[#2c2f32] hover:bg-[#565656]">
+                class="transition flex justify-center items-center text-lg mt-4 text-gray-400 hover:text-gray-200">
+                <svg
+                  class="mr-1.5"
+                  stroke="currentColor"
+                  fill="currentColor"
+                  viewBox="0 0 512 512"
+                  height="1.3em"
+                  width="1.15em">
+                  <path
+                    d="M437.5,386.6L306.9,256l130.6-130.6c14.1-14.1,14.1-36.8,0-50.9c-14.1-14.1-36.8-14.1-50.9,0L256,205.1L125.4,74.5
+                    c-14.1-14.1-36.8-14.1-50.9,0c-14.1,14.1-14.1,36.8,0,50.9L205.1,256L74.5,386.6c-14.1,14.1-14.1,36.8,0,50.9 
+                    c14.1,14.1,36.8,14.1,50.9,0L256,306.9l130.6,130.6c14.1,14.1,36.8,14.1,50.9,0C451.5,423.4,451.5,400.6,437.5,386.6z"
+                  />
+                </svg>
                 Close
               </button>
             </div>
