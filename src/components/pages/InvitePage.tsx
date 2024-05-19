@@ -27,7 +27,7 @@ const InvitePage: Component<{ multiple: boolean }> = (props) => {
   });
 
   return (
-    <div class="flex flex-row h-fit min-dvh-screen justify-center items-center p-8 pb-12 gap-8">
+    <div class="flex flex-row h-fit min-dvh-screen justify-center items-center p-8 py-4 pb-12 gap-8">
       <div class="flex flex-col text-center">
         <Show
           when={visible()}
@@ -36,18 +36,19 @@ const InvitePage: Component<{ multiple: boolean }> = (props) => {
               <img class="rounded" src={QR()} />
               <button
                 onClick={onShow}
-                class="transition flex justify-center items-center text-lg mt-4 text-gray-400 hover:text-gray-200">
+                class="transition flex justify-center items-center font-bold text-md mt-4 text-gray-400 hover:text-gray-200">
                 <svg
-                  class="mr-1.5"
+                  class="mr-2"
                   stroke="currentColor"
                   fill="currentColor"
-                  viewBox="0 0 512 512"
-                  height="1.3em"
-                  width="1.15em">
+                  height="1em"
+                  width="1em"
+                  viewBox="0 0 384 384">
                   <path
-                    d="M437.5,386.6L306.9,256l130.6-130.6c14.1-14.1,14.1-36.8,0-50.9c-14.1-14.1-36.8-14.1-50.9,0L256,205.1L125.4,74.5
-                    c-14.1-14.1-36.8-14.1-50.9,0c-14.1,14.1-14.1,36.8,0,50.9L205.1,256L74.5,386.6c-14.1,14.1-14.1,36.8,0,50.9 
-                    c14.1,14.1,36.8,14.1,50.9,0L256,306.9l130.6,130.6c14.1,14.1,36.8,14.1,50.9,0C451.5,423.4,451.5,400.6,437.5,386.6z"
+                    d="m373.5 322.6l-130.6-130.6 130.6-130.6c14.1-14.1 14.1-36.8 0-50.9-14.1-14.1-36.8-14.1-50.9
+                     0l-130.6 130.6-130.6-130.6c-14.1-14.1-36.8-14.1-50.9 0-14.1 14.1-14.1 36.8 0 50.9l130.6 
+                     130.6-130.6 130.6c-14.1 14.1-14.1 36.8 0 50.9 14.1 14.1 36.8 14.1 50.9 0l130.6-130.6 130.6
+                     130.6c14.1 14.1 36.8 14.1 50.9 0 14-14.1 14-36.9 0-50.9z"
                   />
                 </svg>
                 Close
