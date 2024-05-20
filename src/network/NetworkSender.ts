@@ -230,9 +230,9 @@ export class NetworkSender {
       return this.error("Failed to derive shared secret bits", error);
     }
 
-    let HKDFKey;
+    let keyMaterial;
     try {
-      HKDFKey = await window.crypto.subtle.importKey(
+      keyMaterial = await window.crypto.subtle.importKey(
         "raw",
         sharedSecret,
         { name: "HKDF" },
@@ -255,10 +255,10 @@ export class NetworkSender {
         {
           name: "HKDF",
           hash: "SHA-256",
-          salt: salt,
           info: new Uint8Array(),
+          salt,
         },
-        HKDFKey,
+        keyMaterial,
         { name: "AES-GCM", length: 256 },
         false,
         ["encrypt", "decrypt"]
