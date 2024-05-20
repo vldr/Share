@@ -40,7 +40,7 @@ export class NetworkSender {
         ["sign", "verify"]
       );
     } catch (error) {
-      return this.error("Failed to generate HMAC key: " + error);
+      return this.error("Failed to generate HMAC key", error);
     }
 
     this.sendJSON({
@@ -79,7 +79,7 @@ export class NetworkSender {
 
           return this.messageCallback(plaintext);
         } catch (error) {
-          return this.error("Failed to decrypt: " + error);
+          return this.error("Failed to decrypt", error);
         }
       } else {
         const packet = Packets.Packet.decode(data);
@@ -119,7 +119,7 @@ export class NetworkSender {
     try {
       key = await window.crypto.subtle.exportKey("raw", this.HMACKey);
     } catch (error) {
-      return this.error("Failed to export HMAC key: " + error);
+      return this.error("Failed to export HMAC key", error);
     }
 
     const inviteCode =
@@ -137,13 +137,13 @@ export class NetworkSender {
       this.keyPair = await window.crypto.subtle.generateKey(
         {
           name: "ECDH",
-          namedCurve: "P-256",
+          namedCurve: "P-384",
         },
         false,
-        ["deriveKey"]
+        ["deriveBits"]
       );
     } catch (error) {
-      return this.error("Failed to generate public-private key: " + error);
+      return this.error("Failed to generate public-private key", error);
     }
 
     let publicKey: Uint8Array;
@@ -152,7 +152,7 @@ export class NetworkSender {
         await window.crypto.subtle.exportKey("raw", this.keyPair.publicKey)
       );
     } catch (error) {
-      return this.error("Failed to export public key: " + error);
+      return this.error("Failed to export public key", error);
     }
 
     let signature: Uint8Array;
@@ -161,7 +161,7 @@ export class NetworkSender {
         await window.crypto.subtle.sign("HMAC", this.HMACKey, publicKey)
       );
     } catch (error) {
-      return this.error("Failed to export HMAC key: " + error);
+      return this.error("Failed to export HMAC key", error);
     }
 
     const packet = Packets.Packet.encode({
@@ -193,11 +193,11 @@ export class NetworkSender {
         packet.publicKey
       );
     } catch (error) {
-      return this.error("Failed to verify public key: " + error);
+      return this.error("Failed to verify public key", error);
     }
 
     if (!verification) {
-      return this.error("The signature from the receiver was invalid.");
+      return this.error("The signature from the receiver did not match.");
     }
 
     let publicKey;
@@ -207,31 +207,64 @@ export class NetworkSender {
         packet.publicKey,
         {
           name: "ECDH",
-          namedCurve: "P-256",
+          namedCurve: "P-384",
         },
         false,
         []
       );
     } catch (error) {
-      return this.error("Failed to import public key: " + error);
+      return this.error("Failed to import public key", error);
     }
 
+    let sharedSecret;
     try {
-      this.sharedKey = await window.crypto.subtle.deriveKey(
+      sharedSecret = await window.crypto.subtle.deriveBits(
         {
           name: "ECDH",
           public: publicKey,
         },
         this.keyPair.privateKey,
+        384
+      );
+    } catch (error) {
+      return this.error("Failed to derive shared secret bits", error);
+    }
+
+    let HKDFKey;
+    try {
+      HKDFKey = await window.crypto.subtle.importKey(
+        "raw",
+        sharedSecret,
+        { name: "HKDF" },
+        false,
+        ["deriveKey"]
+      );
+    } catch (error) {
+      return this.error("Failed to import HKDF key", error);
+    }
+
+    let salt;
+    try {
+      salt = await window.crypto.subtle.exportKey("raw", this.HMACKey);
+    } catch (error) {
+      return this.error("Failed to export HMAC key", error);
+    }
+
+    try {
+      this.sharedKey = await window.crypto.subtle.deriveKey(
         {
-          name: "AES-GCM",
-          length: 128,
+          name: "HKDF",
+          hash: "SHA-256",
+          salt: salt,
+          info: new Uint8Array(),
         },
+        HKDFKey,
+        { name: "AES-GCM", length: 256 },
         false,
         ["encrypt", "decrypt"]
       );
     } catch (error) {
-      return this.error("Failed to derive key: " + error);
+      return this.error("Failed to derive key", error);
     }
 
     this.joinRoomCallback();
@@ -243,8 +276,15 @@ export class NetworkSender {
     }
   }
 
-  public error(message: string) {
+  public error(message: string, error?: any) {
     this.close();
+
+    if (error) {
+      console.error(error);
+
+      message += ": " + error;
+    }
+
     this.errorCallback(message);
   }
 
@@ -292,7 +332,7 @@ export class NetworkSender {
 
       this.webSocket!.send(merged);
     } catch (error) {
-      return this.error("Failed to send encrypted: " + error);
+      return this.error("Failed to send encrypted", error);
     }
   }
 }

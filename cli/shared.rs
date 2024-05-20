@@ -4,8 +4,10 @@ pub mod packets {
 
 use aes_gcm::{
     aead::{Aead, AeadCore},
-    Aes128Gcm,
+    Aes256Gcm,
 };
+
+use futures_util::{stream::SplitSink, SinkExt};
 use packets::Packet;
 use prost::Message;
 use rand::rngs::OsRng;
@@ -46,64 +48,52 @@ pub enum Status {
     Err(String),
 }
 
-pub trait JsonPacketSender {
-    fn send_json_packet(&self, packet: JsonPacket);
-}
-
-pub trait PacketSender {
-    fn send_packet(&self, destination: u8, packet: packets::packet::Value);
-    fn send_encrypted_packet(
-        &self,
-        key: &Option<Aes128Gcm>,
-        destination: u8,
-        value: packets::packet::Value,
-    );
-}
-
-impl JsonPacketSender for Sender {
-    fn send_json_packet(&self, packet: JsonPacket) {
-        let serialized_packet = serde_json::to_string(&packet).unwrap();
-
-        self.send(WebSocketMessage::Text(serialized_packet))
-            .unwrap()
-    }
-}
-
-impl PacketSender for Sender {
-    fn send_packet(&self, destination: u8, value: packets::packet::Value) {
-        let packet = Packet { value: Some(value) };
-
-        let mut serialized_packet = packet.encode_to_vec();
-        serialized_packet.insert(0, destination);
-
-        self.send(WebSocketMessage::Binary(serialized_packet))
-            .unwrap()
-    }
-
-    fn send_encrypted_packet(
-        &self,
-        key: &Option<Aes128Gcm>,
-        destination: u8,
-        value: packets::packet::Value,
-    ) {
-        let packet = Packet { value: Some(value) };
-
-        let nonce = Aes128Gcm::generate_nonce(&mut OsRng);
-        let plaintext = packet.encode_to_vec();
-        let mut ciphertext = key
-            .as_ref()
-            .unwrap()
-            .encrypt(&nonce, plaintext.as_ref())
-            .unwrap();
-
-        let mut serialized_packet = nonce.to_vec();
-        serialized_packet.append(&mut ciphertext);
-        serialized_packet.insert(0, destination);
-
-        self.send(WebSocketMessage::Binary(serialized_packet))
-            .unwrap()
-    }
-}
-
-pub type Sender = flume::Sender<WebSocketMessage>;
 pub type Socket = WebSocketStream<MaybeTlsStream<TcpStream>>;
+pub type Sender = SplitSink<Socket, WebSocketMessage>;
+
+pub async fn send_json_packet(sender: &mut Sender, packet: JsonPacket) {
+    let serialized_packet = serde_json::to_string(&packet).unwrap();
+
+    sender
+        .send(WebSocketMessage::Text(serialized_packet))
+        .await
+        .unwrap()
+}
+
+pub async fn send_packet(sender: &mut Sender, destination: u8, value: packets::packet::Value) {
+    let packet = Packet { value: Some(value) };
+
+    let mut serialized_packet = packet.encode_to_vec();
+    serialized_packet.insert(0, destination);
+
+    sender
+        .send(WebSocketMessage::Binary(serialized_packet))
+        .await
+        .unwrap()
+}
+
+pub async fn send_encrypted_packet(
+    sender: &mut Sender,
+    key: &Option<Aes256Gcm>,
+    destination: u8,
+    value: packets::packet::Value,
+) {
+    let packet = Packet { value: Some(value) };
+
+    let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
+    let plaintext = packet.encode_to_vec();
+    let mut ciphertext = key
+        .as_ref()
+        .unwrap()
+        .encrypt(&nonce, plaintext.as_ref())
+        .unwrap();
+
+    let mut serialized_packet = nonce.to_vec();
+    serialized_packet.append(&mut ciphertext);
+    serialized_packet.insert(0, destination);
+
+    sender
+        .send(WebSocketMessage::Binary(serialized_packet))
+        .await
+        .unwrap()
+}
