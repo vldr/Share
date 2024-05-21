@@ -4,7 +4,7 @@ pub mod packets {
 
 use aes_gcm::{
     aead::{Aead, AeadCore},
-    Aes256Gcm,
+    Aes128Gcm,
 };
 
 use futures_util::{stream::SplitSink, SinkExt};
@@ -74,13 +74,13 @@ pub async fn send_packet(sender: &mut Sender, destination: u8, value: packets::p
 
 pub async fn send_encrypted_packet(
     sender: &mut Sender,
-    key: &Option<Aes256Gcm>,
+    key: &Option<Aes128Gcm>,
     destination: u8,
     value: packets::packet::Value,
 ) {
     let packet = Packet { value: Some(value) };
 
-    let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
+    let nonce = Aes128Gcm::generate_nonce(&mut OsRng);
     let plaintext = packet.encode_to_vec();
     let mut ciphertext = key
         .as_ref()

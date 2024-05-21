@@ -20,7 +20,7 @@ prost = "0.11.9"
 prost-types = "0.11.9"
 base64 = "0.21.2"
 url = "2.4.0"
-p384 = { version = "0.13.0", features = ["ecdh"] }
+p256 = { version = "0.13.0", features = ["ecdh"] }
 hmac = "0.12.1"
 sha2 = "0.10.7"
 rand = { version = "0.8.5", features = ["getrandom"] }

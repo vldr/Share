@@ -7,11 +7,11 @@ use crate::shared::{
     Socket, Status,
 };
 
-use aes_gcm::{aead::Aead, Aes256Gcm, Key};
+use aes_gcm::{aead::Aead, Aes128Gcm, Key};
 use base64::{engine::general_purpose, Engine as _};
 use futures_util::StreamExt;
 use hmac::{Hmac, Mac};
-use p384::{ecdh::EphemeralSecret, PublicKey};
+use p256::{ecdh::EphemeralSecret, PublicKey};
 use prost::Message;
 use rand::{rngs::OsRng, RngCore};
 use sha2::Sha256;
@@ -45,7 +45,7 @@ struct Context {
     key: EphemeralSecret,
     files: Vec<File>,
 
-    shared_key: Option<Aes256Gcm>,
+    shared_key: Option<Aes128Gcm>,
     task: Option<JoinHandle<()>>,
 }
 
@@ -129,7 +129,7 @@ async fn on_progress(context: &Context, progress: ProgressPacket) -> Status {
     Status::Continue()
 }
 
-async fn on_chunk(sender: Arc<Mutex<Sender>>, shared_key: Option<Aes256Gcm>, files: Vec<File>) {
+async fn on_chunk(sender: Arc<Mutex<Sender>>, shared_key: Option<Aes128Gcm>, files: Vec<File>) {
     for file in files {
         let mut sequence = 0;
         let mut chunk_size = MAX_CHUNK_SIZE;
@@ -220,11 +220,11 @@ async fn on_handshake(
     let shared_secret = context.key.diffie_hellman(&shared_public_key);
     let shared_secret = shared_secret.extract::<sha2::Sha256>(Some(&context.hmac));
 
-    let mut shared_key = [0u8; 32];
+    let mut shared_key = [0u8; 16];
     shared_secret.expand(&[], &mut shared_key).unwrap();
 
-    let shared_key: &Key<Aes256Gcm> = &shared_key.into();
-    let shared_key = <Aes256Gcm as aes_gcm::KeyInit>::new(shared_key);
+    let shared_key: &Key<Aes128Gcm> = &shared_key.into();
+    let shared_key = <Aes128Gcm as aes_gcm::KeyInit>::new(shared_key);
 
     context.shared_key = Some(shared_key);
 

@@ -69,7 +69,7 @@ export class NetworkReceiver {
       this.keyPair = await window.crypto.subtle.generateKey(
         {
           name: "ECDH",
-          namedCurve: "P-384",
+          namedCurve: "P-256",
         },
         false,
         ["deriveBits"]
@@ -177,7 +177,7 @@ export class NetworkReceiver {
         packet.publicKey,
         {
           name: "ECDH",
-          namedCurve: "P-384",
+          namedCurve: "P-256",
         },
         false,
         []
@@ -196,7 +196,7 @@ export class NetworkReceiver {
           public: publicKey,
         },
         this.keyPair.privateKey,
-        384
+        256
       );
     } catch (error) {
       return this.error("Failed to derive shared secret bits", error);
@@ -231,7 +231,7 @@ export class NetworkReceiver {
           salt,
         },
         keyMaterial,
-        { name: "AES-GCM", length: 256 },
+        { name: "AES-GCM", length: 128 },
         false,
         ["encrypt", "decrypt"]
       );
