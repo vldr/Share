@@ -278,7 +278,7 @@ pub async fn start(socket: Socket, fragment: &str) {
     println!("Attempting to join room '{}'...", id);
     context
         .sender
-        .send_json_packet(JsonPacket::Create { size: Some(2) });
+        .send_json_packet(JsonPacket::Join { id: id.to_string() });
 
     let outgoing_handler = receiver.stream().map(Ok).forward(outgoing);
     let incoming_handler = incoming.try_for_each(|message| {
