@@ -3,13 +3,12 @@ use crate::shared::{
         list_packet, packet::Value, ChunkPacket, HandshakePacket, HandshakeResponsePacket,
         ListPacket, Packet, ProgressPacket,
     },
-    send_encrypted_packet, send_json_packet, send_packet, JsonPacket, JsonPacketResponse, Sender,
-    Socket, Status,
+    JsonPacket, JsonPacketResponse, JsonPacketSender, PacketSender, Sender, Socket, Status,
 };
 
 use aes_gcm::{aead::Aead, Aes128Gcm, Key};
 use base64::{engine::general_purpose, Engine as _};
-use futures_util::StreamExt;
+use futures_util::{future, pin_mut, stream::TryStreamExt, StreamExt};
 use hmac::{Hmac, Mac};
 use p256::{ecdh::EphemeralSecret, PublicKey};
 use prost::Message;
@@ -19,11 +18,10 @@ use std::{
     fs,
     io::{stdout, Write},
     path::Path,
-    sync::Arc,
     time::Duration,
 };
-use tokio::{io::AsyncReadExt, sync::Mutex, task::JoinHandle, time::sleep};
-use tokio_tungstenite::tungstenite::protocol::Message as WebSocketMessage;
+use tokio::{io::AsyncReadExt, task::JoinHandle, time::sleep};
+use tokio_tungstenite::tungstenite::{protocol::Message as WebSocketMessage, Error};
 
 const DESTINATION: u8 = 1;
 const NONCE_SIZE: usize = 12;
@@ -40,7 +38,7 @@ struct File {
 
 struct Context {
     hmac: Vec<u8>,
-    sender: Arc<Mutex<Sender>>,
+    sender: Sender,
 
     key: EphemeralSecret,
     files: Vec<File>,
@@ -49,7 +47,7 @@ struct Context {
     task: Option<JoinHandle<()>>,
 }
 
-async fn on_create_room(context: &Context, id: String) -> Status {
+fn on_create_room(context: &Context, id: String) -> Status {
     let base64 = general_purpose::STANDARD.encode(&context.hmac);
     let url = format!("{}{}-{}", URL, id, base64);
 
@@ -65,7 +63,7 @@ async fn on_create_room(context: &Context, id: String) -> Status {
     Status::Continue()
 }
 
-async fn on_join_room(context: &mut Context, size: Option<usize>) -> Status {
+fn on_join_room(context: &Context, size: Option<usize>) -> Status {
     if size.is_some() {
         return Status::Err("Invalid join room packet.".into());
     }
@@ -81,17 +79,18 @@ async fn on_join_room(context: &mut Context, size: Option<usize>) -> Status {
         signature,
     };
 
-    let mut sender = context.sender.lock().await;
-    send_packet(&mut sender, DESTINATION, Value::Handshake(handshake)).await;
+    context
+        .sender
+        .send_packet(DESTINATION, Value::Handshake(handshake));
 
     Status::Continue()
 }
 
-async fn on_error(message: String) -> Status {
+fn on_error(message: String) -> Status {
     Status::Err(message)
 }
 
-async fn on_leave_room(context: &mut Context, _: usize) -> Status {
+fn on_leave_room(context: &mut Context, _: usize) -> Status {
     if let Some(task) = &context.task {
         task.abort();
     }
@@ -106,7 +105,7 @@ async fn on_leave_room(context: &mut Context, _: usize) -> Status {
     Status::Continue()
 }
 
-async fn on_progress(context: &Context, progress: ProgressPacket) -> Status {
+fn on_progress(context: &Context, progress: ProgressPacket) -> Status {
     if context.shared_key.is_none() {
         return Status::Err("Invalid progress packet: no shared key established".into());
     }
@@ -129,7 +128,7 @@ async fn on_progress(context: &Context, progress: ProgressPacket) -> Status {
     Status::Continue()
 }
 
-async fn on_chunk(sender: Arc<Mutex<Sender>>, shared_key: Option<Aes128Gcm>, files: Vec<File>) {
+async fn on_chunk(sender: Sender, shared_key: Option<Aes128Gcm>, files: Vec<File>) {
     for file in files {
         let mut sequence = 0;
         let mut chunk_size = MAX_CHUNK_SIZE;
@@ -151,14 +150,11 @@ async fn on_chunk(sender: Arc<Mutex<Sender>>, shared_key: Option<Aes128Gcm>, fil
             let mut chunk = vec![0u8; chunk_size.try_into().unwrap()];
             handle.read_exact(&mut chunk).await.unwrap();
 
-            let mut sender = sender.lock().await;
-            send_encrypted_packet(
-                &mut sender,
+            sender.send_encrypted_packet(
                 &shared_key,
                 DESTINATION,
                 Value::Chunk(ChunkPacket { sequence, chunk }),
-            )
-            .await;
+            );
 
             size -= chunk_size;
             sequence += 1;
@@ -168,7 +164,7 @@ async fn on_chunk(sender: Arc<Mutex<Sender>>, shared_key: Option<Aes128Gcm>, fil
     }
 }
 
-async fn on_handshake_finalize(context: &mut Context) -> Status {
+fn on_handshake_finalize(context: &mut Context) -> Status {
     let mut entries = vec![];
 
     for (index, file) in context.files.iter().enumerate() {
@@ -181,14 +177,11 @@ async fn on_handshake_finalize(context: &mut Context) -> Status {
         entries.push(entry);
     }
 
-    let mut sender = context.sender.lock().await;
-    send_encrypted_packet(
-        &mut sender,
+    context.sender.send_encrypted_packet(
         &context.shared_key,
         DESTINATION,
         Value::List(ListPacket { entries }),
-    )
-    .await;
+    );
 
     context.task = Some(tokio::spawn(on_chunk(
         context.sender.clone(),
@@ -199,10 +192,7 @@ async fn on_handshake_finalize(context: &mut Context) -> Status {
     Status::Continue()
 }
 
-async fn on_handshake(
-    context: &mut Context,
-    handshake_response: HandshakeResponsePacket,
-) -> Status {
+fn on_handshake(context: &mut Context, handshake_response: HandshakeResponsePacket) -> Status {
     if context.shared_key.is_some() {
         return Status::Err("Already performed handshake.".into());
     }
@@ -228,19 +218,19 @@ async fn on_handshake(
 
     context.shared_key = Some(shared_key);
 
-    on_handshake_finalize(context).await
+    on_handshake_finalize(context)
 }
 
-async fn on_message(context: &mut Context, message: WebSocketMessage) -> Status {
+fn on_message(context: &mut Context, message: WebSocketMessage) -> Status {
     if message.is_text() {
         let text = message.into_text().unwrap();
         let packet = serde_json::from_str(&text).unwrap();
 
         return match packet {
-            JsonPacketResponse::Create { id } => on_create_room(context, id).await,
-            JsonPacketResponse::Join { size } => on_join_room(context, size).await,
-            JsonPacketResponse::Leave { index } => on_leave_room(context, index).await,
-            JsonPacketResponse::Error { message } => on_error(message).await,
+            JsonPacketResponse::Create { id } => on_create_room(context, id),
+            JsonPacketResponse::Join { size } => on_join_room(context, size),
+            JsonPacketResponse::Leave { index } => on_leave_room(context, index),
+            JsonPacketResponse::Error { message } => on_error(message),
         };
     } else if message.is_binary() {
         let data = message.into_data();
@@ -260,9 +250,9 @@ async fn on_message(context: &mut Context, message: WebSocketMessage) -> Status 
 
         return match value {
             Value::HandshakeResponse(handshake_response) => {
-                on_handshake(context, handshake_response).await
+                on_handshake(context, handshake_response)
             }
-            Value::Progress(progress) => on_progress(context, progress).await,
+            Value::Progress(progress) => on_progress(context, progress),
 
             _ => Status::Err(format!("Unexpected packet: {:?}", value)),
         };
@@ -309,14 +299,14 @@ pub async fn start(socket: Socket, paths: Vec<String>) {
 
     let key = EphemeralSecret::random(&mut OsRng);
 
-    let (sender, mut receiver) = socket.split();
-    let sender = Arc::new(Mutex::new(sender));
+    let (sender, receiver) = flume::bounded(1000);
+    let (outgoing, incoming) = socket.split();
 
     let mut context = Context {
         key,
         files,
+        sender,
 
-        sender: sender.clone(),
         hmac: hmac.to_vec(),
         shared_key: None,
         task: None,
@@ -324,21 +314,29 @@ pub async fn start(socket: Socket, paths: Vec<String>) {
 
     println!("Attempting to create room...");
 
-    let mut sender = sender.lock().await;
-    send_json_packet(&mut sender, JsonPacket::Create { size: Some(2) }).await;
-    drop(sender);
+    context
+        .sender
+        .send_json_packet(JsonPacket::Create { size: Some(2) });
 
-    while let Some(Ok(message)) = receiver.next().await {
-        match on_message(&mut context, message).await {
+    let outgoing_handler = receiver.stream().map(Ok).forward(outgoing);
+    let incoming_handler = incoming.try_for_each(|message| {
+        match on_message(&mut context, message) {
             Status::Exit() => {
                 println!("Transfer has completed.");
-                break;
+
+                return future::err(Error::ConnectionClosed);
             }
             Status::Err(error) => {
                 println!("Error: {}", error);
-                break;
+
+                return future::err(Error::ConnectionClosed);
             }
             _ => {}
-        }
-    }
+        };
+
+        future::ok(())
+    });
+
+    pin_mut!(incoming_handler, outgoing_handler);
+    future::select(incoming_handler, outgoing_handler).await;
 }
