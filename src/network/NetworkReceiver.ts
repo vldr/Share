@@ -18,6 +18,7 @@ export class NetworkReceiver {
     private readonly leaveRoomCallback: () => void
   ) {
     this.webSocket = new WebSocket(URI);
+    this.webSocket.binaryType = "arraybuffer";
     this.webSocket.onopen = this.onOpen.bind(this);
     this.webSocket.onclose = this.onClose.bind(this);
     this.webSocket.onerror = this.onError.bind(this);
@@ -99,13 +100,12 @@ export class NetworkReceiver {
   }
 
   private async onMessage(event: MessageEvent) {
-    if (event.data instanceof Blob) {
-      const arrayBuffer = await event.data.arrayBuffer();
-      const data = new Uint8Array(arrayBuffer).slice(1);
+    if (event.data instanceof ArrayBuffer) {
+      const data = new Uint8Array(event.data).subarray(1);
 
       if (this.sharedKey) {
-        const iv = data.slice(0, this.IV_SIZE);
-        const ciphertext = data.slice(this.IV_SIZE);
+        const iv = data.subarray(0, this.IV_SIZE);
+        const ciphertext = data.subarray(this.IV_SIZE);
 
         try {
           const plaintext = new Uint8Array(
