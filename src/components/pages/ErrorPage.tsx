@@ -1,4 +1,4 @@
-import { Component, Show } from "solid-js";
+import { Component, Match, Show, Switch } from "solid-js";
 
 const ErrorPage: Component<{ message: string }> = (props) => {
   const onRetryClick = () => {
@@ -25,7 +25,15 @@ const ErrorPage: Component<{ message: string }> = (props) => {
       </svg>
       <div class="text-4xl text-white">Error</div>
       <div class="text-xl text-white max-w-lg mt-3 mb-5 text-center">
-        {props.message}
+        <Switch fallback={props.message}>
+          <Match when={props.message == "DoesNotExist"}>
+            The link you entered is not valid.
+          </Match>
+
+          <Match when={props.message == "IsFull"}>
+            The link you entered cannot be joined because the session is full.
+          </Match>
+        </Switch>
       </div>
       <div class="flex flex-row">
         <Show
