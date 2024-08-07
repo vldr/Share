@@ -27,8 +27,8 @@
     <script>
       function resize() {
         document.documentElement.style.setProperty(
-          "--vh",
-          window.innerHeight * 0.01 + "px"
+          "--dvh",
+          window.visualViewport.height + "px"
         );
       }
       window.onresize = resize;
